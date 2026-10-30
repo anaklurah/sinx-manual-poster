@@ -1,0 +1,27 @@
+# ============================================================
+# Sin'X Manual Poster Configuration
+# ============================================================
+
+server:
+  host: "0.0.0.0"
+  port: 8090
+
+browser:
+  headless: true
+  engine: "camoufox"          # camoufox atau chromium
+  locale: "id-ID"
+  timezone: "Asia/Jakarta"
+
+rate_limits:
+  delay_between_platforms_sec: 25   # Jeda acak antar platform
+
+scheduler:
+  poll_interval_sec: 15             # Interval pengecekan jadwal (detik)
+
+telegram:
+  enabled: false
+  bot_token: ""
+  chat_id: ""
+
+proxy:
+  url: ""                           # http://user:pass@ip:port atau socks5://ip:port

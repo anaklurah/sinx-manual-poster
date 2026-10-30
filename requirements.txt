@@ -1,0 +1,25 @@
+# ============================================================
+# Sin'X Manual Poster — Python Dependencies
+# ============================================================
+
+# --- Web Framework & Server ---
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+aiofiles>=23.2.1
+
+# --- Browser Automation ---
+playwright>=1.44.0
+playwright-stealth>=1.0.6
+camoufox>=0.5.6
+
+# --- Network & Requests ---
+requests>=2.31.0
+
+# --- Configuration & Environment ---
+python-dotenv>=1.0.1
+PyYAML>=6.0.1
+tzdata>=2024.1
+
+# --- CLI & Console Display ---
+rich>=13.7.0

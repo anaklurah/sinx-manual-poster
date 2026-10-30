@@ -1,0 +1,22 @@
+services:
+  manual_poster:
+    build: .
+    container_name: sinx_manual_poster
+    restart: unless-stopped
+    shm_size: '2gb'
+    ports:
+      - "${HOST_PORT:-8090}:8090"
+    environment:
+      - TZ=${TIMEZONE:-Asia/Jakarta}
+      - POSTER_DB_PATH=/app/data/manual_poster.db
+      - UPLOADS_DIR=/app/uploads
+      - PROFILES_DIR=/app/assets/profiles
+      - HEADLESS=true
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+      - ./assets:/app/assets
+      - ./config.yaml:/app/config.yaml
+      - ./.env:/app/.env
+      - ./web:/app/web
+      - ./poster:/app/poster
