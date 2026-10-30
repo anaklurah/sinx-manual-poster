@@ -246,7 +246,7 @@ class BasePublisher(ABC):
         profiles_dir = self._get_profiles_dir()
         root_profiles_dir = Path(getattr(cfg, 'PROFILES_DIR', './assets/profiles'))
         profile_key = getattr(self, "target_key", None) or self.PLATFORM_NAME
-        use_camoufox = getattr(cfg, 'BROWSER_ENGINE', 'camoufox') == 'camoufox'
+        use_camoufox = getattr(cfg, 'BROWSER_ENGINE', 'chromium') == 'camoufox'
         is_employee = bool(self.account_id and self.account_id > 1)
 
         if self.AUTH_METHOD == 'persistent':
