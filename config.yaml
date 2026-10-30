@@ -7,8 +7,8 @@ server:
   port: 8090
 
 browser:
-  headless: true
-  engine: "camoufox"          # camoufox atau chromium
+  headless: false
+  engine: "chromium"          # chromium (cepat & stabil) atau camoufox
   locale: "id-ID"
   timezone: "Asia/Jakarta"
 

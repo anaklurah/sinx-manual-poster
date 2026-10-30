@@ -28,8 +28,8 @@ class Config:
     ASSETS_DIR: Path = field(default_factory=lambda: Path("./assets"))
 
     # Browser
-    HEADLESS: bool = True
-    BROWSER_ENGINE: str = "camoufox"
+    HEADLESS: bool = False
+    BROWSER_ENGINE: str = "chromium"
     BROWSER_LOCALE: str = "id-ID"
     BROWSER_TIMEZONE: str = "Asia/Jakarta"
 

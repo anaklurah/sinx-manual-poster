@@ -275,7 +275,7 @@ class BasePublisher(ABC):
                         user_data_dir=str(profile_dir),
                         **cf_kwargs,
                     )
-                    context = await cf.start()
+                    context = await asyncio.wait_for(cf.start(), timeout=15.0)
                 except Exception as cf_err:
                     self._log.warning('[%s] Camoufox persistent context failed (%s), falling back to Chromium', profile_key, cf_err)
                     context = None
@@ -349,7 +349,7 @@ class BasePublisher(ABC):
                     cf_kwargs['proxy'] = pw_proxy
                 self._log.info('[%s] Launching anti-detect Camoufox browser...', profile_key)
                 cf = AsyncCamoufox(**cf_kwargs)
-                browser = await cf.start()
+                browser = await asyncio.wait_for(cf.start(), timeout=15.0)
             except Exception as cf_err:
                 self._log.warning('[%s] Camoufox launch failed (%s), falling back to Chromium', profile_key, cf_err)
                 browser = None
