@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * Sin'X Manual Poster — Modern Single Page Application (SPA)
+ * Sin'X Manual Poster — Studio Web Dashboard SPA
  * ============================================================
  */
 
@@ -10,7 +10,19 @@ let currentTab = 'create';
 let currentPage = 1;
 let sseSource = null;
 let isLogAutoScroll = true;
-let uploadedVideoData = null; // { video_path, video_filename, video_url, size }
+let uploadedVideoData = null; // { video_path, video_filename, video_url, video_size_bytes, original_filename }
+
+// Platform iconography and brand colors
+const PLATFORM_META = {
+    'youtube': { icon: 'video', color: '#ef4444', label: 'YouTube' },
+    'tiktok': { icon: 'music', color: '#06b6d4', label: 'TikTok' },
+    'instagram': { icon: 'camera', color: '#ec4899', label: 'Instagram' },
+    'facebook': { icon: 'facebook', color: '#3b82f6', label: 'Facebook' },
+    'twitter': { icon: 'twitter', color: '#38bdf8', label: 'Twitter / X' },
+    'twitter_nsfw': { icon: 'flame', color: '#f43f5e', label: 'Twitter 18+' },
+    'upscrolled': { icon: 'arrow-up-circle', color: '#10b981', label: 'Upscrolled' },
+    'febspot': { icon: 'play-circle', color: '#f59e0b', label: 'Febspot' }
+};
 
 // ---------------------------------------------------------------------------
 // Helpers & API Fetch
@@ -114,10 +126,10 @@ async function handleLogin(e) {
             initDashboard();
             showToast(data.message || 'Login berhasil!', 'success');
         } else {
-            showToast(data.detail || 'Login gagal.', 'error');
+            showToast(data.detail || 'Login gagal. Periksa username dan password.', 'error');
         }
     } catch (err) {
-        showToast('Network error during login: ' + err.message, 'error');
+        showToast('Koneksi gagal: ' + err.message, 'error');
     }
 }
 
@@ -137,7 +149,7 @@ function updateUserBadge() {
 
     if (currentUser) {
         if (badgeName) badgeName.innerText = currentUser.username;
-        if (badgeRole) badgeRole.innerText = currentUser.is_admin ? 'Admin' : 'Karyawan';
+        if (badgeRole) badgeRole.innerText = currentUser.is_admin ? 'ADMIN' : 'KARYAWAN';
         adminTabs.forEach(el => {
             el.style.display = currentUser.is_admin ? 'inline-flex' : 'none';
         });
@@ -167,6 +179,73 @@ function switchTab(tabName, el) {
         initSSELogs();
     } else if (tabName === 'users') {
         loadUsersTable();
+    }
+    lucide.createIcons();
+}
+
+// ---------------------------------------------------------------------------
+// Timing Mode & Hashtag Helpers
+// ---------------------------------------------------------------------------
+
+function setTimingMode(mode) {
+    const isNow = mode === 'now';
+    const btnNow = document.getElementById('seg-timing-now');
+    const btnSched = document.getElementById('seg-timing-schedule');
+    const radioNow = document.getElementById('timing-now');
+    const radioSched = document.getElementById('timing-schedule');
+    const schedWrap = document.getElementById('schedule-datetime-wrap');
+
+    if (btnNow) btnNow.classList.toggle('active', isNow);
+    if (btnSched) btnSched.classList.toggle('active', !isNow);
+    if (radioNow) radioNow.checked = isNow;
+    if (radioSched) radioSched.checked = !isNow;
+    if (schedWrap) schedWrap.style.display = isNow ? 'none' : 'block';
+
+    if (!isNow) {
+        const timeInput = document.getElementById('post-scheduled-time');
+        if (timeInput && !timeInput.value) {
+            // Default: 1 hour from current time in WIB
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            now.setMinutes(0);
+            const pad = (n) => String(n).padStart(2, '0');
+            const localIso = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            timeInput.value = localIso;
+        }
+    }
+    lucide.createIcons();
+}
+
+function appendTag(tag) {
+    const tagsInput = document.getElementById('post-tags');
+    if (!tagsInput) return;
+    let current = tagsInput.value.trim();
+    const tagList = current ? current.split(/\s+/) : [];
+    if (!tagList.includes(tag)) {
+        tagList.push(tag);
+        tagsInput.value = tagList.join(' ') + ' ';
+    }
+    tagsInput.focus();
+}
+
+function initCharCounters() {
+    const titleInput = document.getElementById('post-title');
+    const titleCounter = document.getElementById('title-char-count');
+    if (titleInput && titleCounter) {
+        titleInput.addEventListener('input', () => {
+            const len = titleInput.value.length;
+            titleCounter.innerText = `${len} / 100`;
+            titleCounter.style.color = len >= 90 ? '#f87171' : (len >= 75 ? '#fbbf24' : 'var(--text-muted)');
+        });
+    }
+
+    const descInput = document.getElementById('post-description');
+    const descCounter = document.getElementById('desc-char-count');
+    if (descInput && descCounter) {
+        descInput.addEventListener('input', () => {
+            const len = descInput.value.length;
+            descCounter.innerText = `${len} karakter`;
+        });
     }
 }
 
@@ -214,19 +293,24 @@ async function handleVideoFileSelected(file) {
 
     const previewContainer = document.getElementById('video-preview-wrap');
     const videoPlayer = document.getElementById('video-preview-player');
+    const videoInfoWrap = document.getElementById('video-file-info-wrap');
     const videoInfoText = document.getElementById('video-file-info');
     const uploadProgress = document.getElementById('upload-progress-wrap');
     const progressBar = document.getElementById('upload-progress-bar');
+    const progressText = document.getElementById('upload-progress-text');
 
-    // Auto-fill title if title input is empty
+    // Auto-fill title if empty
     const titleInput = document.getElementById('post-title');
     if (titleInput && !titleInput.value.trim()) {
         const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
         titleInput.value = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+        const titleCounter = document.getElementById('title-char-count');
+        if (titleCounter) titleCounter.innerText = `${titleInput.value.length} / 100`;
     }
 
     if (uploadProgress) uploadProgress.style.display = 'block';
-    if (progressBar) progressBar.style.width = '30%';
+    if (progressBar) progressBar.style.width = '35%';
+    if (progressText) progressText.innerText = '35%';
 
     const formData = new FormData();
     formData.append('file', file);
@@ -239,15 +323,17 @@ async function handleVideoFileSelected(file) {
         const data = await res.json();
 
         if (progressBar) progressBar.style.width = '100%';
+        if (progressText) progressText.innerText = '100%';
 
         if (res.ok && data.success) {
             uploadedVideoData = data;
             if (videoPlayer) videoPlayer.src = data.video_url;
             if (previewContainer) previewContainer.style.display = 'block';
+            if (videoInfoWrap) videoInfoWrap.style.display = 'block';
             if (videoInfoText) {
-                videoInfoText.innerHTML = `<b>${escapeHtml(data.original_filename)}</b> (${formatBytes(data.video_size_bytes)}) — <span style="color:#10b981;">Siap Diposting</span>`;
+                videoInfoText.innerText = `${data.original_filename} (${formatBytes(data.video_size_bytes)})`;
             }
-            showToast('Video berhasil diupload ke server!', 'success');
+            showToast('Video siap dipublikasikan!', 'success');
         } else {
             showToast(data.detail || 'Gagal mengupload video', 'error');
         }
@@ -256,14 +342,8 @@ async function handleVideoFileSelected(file) {
     } finally {
         setTimeout(() => {
             if (uploadProgress) uploadProgress.style.display = 'none';
-        }, 800);
-    }
-}
-
-function toggleScheduleOptions(isScheduled) {
-    const wrap = document.getElementById('schedule-datetime-wrap');
-    if (wrap) {
-        wrap.style.display = isScheduled ? 'block' : 'none';
+        }, 600);
+        lucide.createIcons();
     }
 }
 
@@ -284,24 +364,29 @@ async function loadPlatformCheckboxes() {
 
         container.innerHTML = cachedPlatforms.map(p => {
             const isChecked = p.enabled ? 'checked' : '';
+            const meta = PLATFORM_META[p.platform] || { icon: 'share-2', color: '#6366f1', label: p.platform };
             const authPill = p.auth_configured
-                ? `<span style="font-size: 10px; background: rgba(16,185,129,0.15); color: #34d399; padding: 1px 6px; border-radius: 4px;">Ready</span>`
-                : `<span style="font-size: 10px; background: rgba(239,68,68,0.15); color: #f87171; padding: 1px 6px; border-radius: 4px;">No Cookie</span>`;
+                ? `<span class="platform-badge-status platform-badge-ready">Ready</span>`
+                : `<span class="platform-badge-status platform-badge-missing">No Cookie</span>`;
 
             return `
                 <label class="platform-checkbox-label ${isChecked ? 'checked' : ''}" id="label-plat-${p.target_key}">
                     <input type="checkbox" name="target_platform" value="${p.target_key}" ${isChecked} onchange="togglePlatformCardStyle('${p.target_key}', this.checked)">
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between;">
-                            ${escapeHtml(p.name)}
+                    <div class="platform-meta">
+                        <div class="platform-name-row">
+                            <span style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <i data-lucide="${meta.icon}" style="width: 14px; height: 14px; color: ${meta.color}; flex-shrink: 0;"></i>
+                                <span>${escapeHtml(p.name)}</span>
+                            </span>
                             ${authPill}
                         </div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">${escapeHtml(p.platform)}</div>
+                        <div class="platform-type-sub">${escapeHtml(meta.label)}</div>
                     </div>
                 </label>
             `;
         }).join('');
 
+        lucide.createIcons();
     } catch (err) {
         console.error('Error loading platform checkboxes:', err);
     }
@@ -346,7 +431,6 @@ async function submitManualPost() {
         return;
     }
 
-    // Selected platforms
     const selectedPlatforms = Array.from(document.querySelectorAll('input[name="target_platform"]:checked'))
         .map(cb => cb.value);
 
@@ -355,20 +439,19 @@ async function submitManualPost() {
         return;
     }
 
-    const isPostNow = timingNow.checked;
+    const isPostNow = timingNow ? timingNow.checked : true;
     let scheduledAt = null;
 
     if (!isPostNow) {
-        const val = scheduleInput.value;
+        const val = scheduleInput ? scheduleInput.value : '';
         if (!val) {
             showToast('Silakan tentukan tanggal dan jam jadwal tayang!', 'warning');
-            scheduleInput.focus();
+            if (scheduleInput) scheduleInput.focus();
             return;
         }
         scheduledAt = val.replace('T', ' ') + ':00';
     }
 
-    // Tags parsing
     const rawTags = tagsInput ? tagsInput.value.trim() : '';
     const tags = rawTags ? rawTags.split(/[\s,]+/).map(t => t.startsWith('#') ? t : `#${t}`).filter(Boolean) : [];
 
@@ -387,7 +470,7 @@ async function submitManualPost() {
     const submitBtn = document.getElementById('btn-submit-post');
     const origHtml = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Memproses...';
+    submitBtn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Memproses antrean...';
     lucide.createIcons();
 
     try {
@@ -398,17 +481,27 @@ async function submitManualPost() {
         const data = await res.json();
 
         if (res.ok && data.success) {
-            showToast(data.message || 'Postingan berhasil dibuat!', 'success');
-            // Reset Form
+            showToast(data.message || 'Postingan berhasil disimpan!', 'success');
+            
+            // Reset form fields
             titleInput.value = '';
             if (descInput) descInput.value = '';
             if (tagsInput) tagsInput.value = '';
             uploadedVideoData = null;
-            document.getElementById('video-preview-wrap').style.display = 'none';
-            document.getElementById('video-preview-player').src = '';
-            document.getElementById('video-file-info').innerHTML = '';
 
-            // Redirect to Posts list tab
+            const previewWrap = document.getElementById('video-preview-wrap');
+            const previewPlayer = document.getElementById('video-preview-player');
+            const infoWrap = document.getElementById('video-file-info-wrap');
+            if (previewWrap) previewWrap.style.display = 'none';
+            if (previewPlayer) previewPlayer.src = '';
+            if (infoWrap) infoWrap.style.display = 'none';
+
+            const titleCounter = document.getElementById('title-char-count');
+            if (titleCounter) titleCounter.innerText = '0 / 100';
+            const descCounter = document.getElementById('desc-char-count');
+            if (descCounter) descCounter.innerText = '0 karakter';
+
+            // Navigate to Posts list tab
             const tabBtn = document.querySelector('[data-tab="posts"]');
             switchTab('posts', tabBtn);
         } else {
@@ -442,9 +535,10 @@ async function loadPosts(page = 1) {
         if (!data.posts || data.posts.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
-                        <i data-lucide="inbox" style="width: 40px; height: 40px; opacity: 0.3; margin-bottom: 8px; display: block; margin: 0 auto 8px auto;"></i>
-                        Belum ada postingan manual. Buat postingan baru di tab 'Upload & Post'!
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3.5rem 1rem;">
+                        <i data-lucide="inbox" style="width: 44px; height: 44px; opacity: 0.35; margin: 0 auto 10px auto; display: block;"></i>
+                        <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-secondary);">Belum ada postingan manual</div>
+                        <div style="font-size: 0.78rem; margin-top: 4px;">Buat postingan baru di tab 'Upload & Post' untuk mulai publikasi.</div>
                     </td>
                 </tr>
             `;
@@ -459,9 +553,9 @@ async function loadPosts(page = 1) {
                     const st = pData.status || 'pending';
                     const hasLink = pData.upload_url && pData.upload_url.startsWith('http');
                     if (hasLink) {
-                        pills += `<a href="${pData.upload_url}" target="_blank" class="platform-pill ${st}" title="Buka postingan di ${targetKey}" style="text-decoration:none;">${targetKey} ↗</a> `;
+                        pills += `<a href="${pData.upload_url}" target="_blank" rel="noopener noreferrer" class="platform-pill ${st}" title="Buka postingan di ${targetKey}">${targetKey} ↗</a> `;
                     } else {
-                        pills += `<span class="platform-pill ${st}" title="${escapeHtml(pData.error_msg || '')}">${targetKey}: ${st}</span> `;
+                        pills += `<span class="platform-pill ${st}" title="${escapeHtml(pData.error_msg || '')}">${targetKey}</span> `;
                     }
                 }
             } else {
@@ -479,29 +573,29 @@ async function loadPosts(page = 1) {
             const badgeClass = statusBadgeMap[p.status] || 'badge-pending';
 
             const timingDisplay = p.scheduled_at
-                ? `<span title="Dijadwalkan" style="color:#fbbf24;"><i data-lucide="clock" style="width:12px; height:12px; display:inline;"></i> ${escapeHtml(p.scheduled_at)}</span>`
+                ? `<span title="Dijadwalkan" style="color:#fbbf24; font-weight:600;"><i data-lucide="clock" style="width:12px; height:12px; display:inline; vertical-align:middle;"></i> ${escapeHtml(p.scheduled_at)}</span>`
                 : `<span title="Dibuat" style="color:var(--text-muted);">${escapeHtml(p.created_at ? p.created_at.substring(0, 16).replace('T', ' ') : '-')}</span>`;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="font-weight: 700; color: var(--text-muted); font-family: var(--font-mono);">#${p.id}</td>
                 <td>
-                    <div style="font-weight: 600; color: var(--text-primary); max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(p.title)}">
+                    <div style="font-weight: 700; color: var(--text-primary); max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(p.title)}">
                         ${escapeHtml(p.title)}
                     </div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${escapeHtml(p.video_filename || '')}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">${escapeHtml(p.video_filename || '')}</div>
                 </td>
                 <td><span class="badge-clay ${badgeClass}">${p.status.toUpperCase()}</span></td>
-                <td><div style="display: flex; flex-wrap: wrap; gap: 4px;">${pills}</div></td>
+                <td><div style="display: flex; flex-wrap: wrap; gap: 5px;">${pills}</div></td>
                 <td style="font-size: 0.78rem; font-family: var(--font-mono); white-space: nowrap;">${timingDisplay}</td>
                 <td style="text-align: center; white-space: nowrap;">
                     ${p.status !== 'done' ? `
                         <button class="btn-clay btn-clay-primary btn-clay-sm" onclick="triggerPostNow(${p.id})" title="Upload / Coba lagi sekarang" style="padding: 4px 8px; margin-right: 4px;">
-                            <i data-lucide="send" style="width: 13px; height: 13px;"></i>
+                            <i data-lucide="send"></i>
                         </button>
                     ` : ''}
                     <button class="btn-clay btn-clay-secondary btn-clay-sm" onclick="deletePostItem(${p.id})" title="Hapus post #${p.id}" style="padding: 4px 8px; color: #ef4444;">
-                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                        <i data-lucide="trash-2"></i>
                     </button>
                 </td>
             `;
@@ -571,43 +665,45 @@ async function loadPlatformCards() {
 
         container.innerHTML = targets.map(t => {
             const isConnected = t.auth_configured;
+            const meta = PLATFORM_META[t.platform] || { icon: 'share-2', color: '#6366f1', label: t.platform };
+
             return `
-                <div class="clay-card platform-card" style="display: flex; flex-direction: column; justify-content: space-between; border-radius: 16px;">
+                <div class="clay-card" style="display: flex; flex-direction: column; justify-content: space-between; border-radius: var(--radius-lg); margin-bottom: 0;">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div class="platform-clay-badge badge-${t.platform}">
-                                    <i data-lucide="share-2" style="width: 18px; height: 18px;"></i>
+                                    <i data-lucide="${meta.icon}" style="width: 20px; height: 20px;"></i>
                                 </div>
                                 <div>
-                                    <h4 style="margin: 0; font-size: 1.05rem; color: var(--text-primary); font-weight: 700;">${escapeHtml(t.name)}</h4>
-                                    <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">${escapeHtml(t.platform)}</span>
+                                    <h4 style="margin: 0; font-size: 1rem; color: var(--text-primary); font-weight: 800;">${escapeHtml(t.name)}</h4>
+                                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">${escapeHtml(meta.label)}</span>
                                 </div>
                             </div>
-                            <label class="clay-switch">
+                            <label class="clay-switch" title="Aktif / Nonaktifkan target ini">
                                 <input type="checkbox" ${t.enabled ? 'checked' : ''} onchange="togglePlatformTarget('${t.target_key}', this.checked)">
                                 <span class="clay-switch-slider"></span>
                             </label>
                         </div>
 
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(0,0,0,0.25); border-radius: 10px; margin-bottom: 14px;">
-                            <span style="font-size: 0.82rem; color: var(--text-muted);">Status Sesi:</span>
-                            <span class="badge-clay ${isConnected ? 'badge-done' : 'badge-failed'}" style="font-size: 0.75rem; padding: 2px 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); margin-bottom: 14px; border: 1px solid var(--clay-border);">
+                            <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">Status Autentikasi:</span>
+                            <span class="badge-clay ${isConnected ? 'badge-done' : 'badge-failed'}" style="font-size: 0.7rem; padding: 2px 8px;">
                                 <i data-lucide="${isConnected ? 'check-circle' : 'alert-circle'}" style="width: 12px; height: 12px; display: inline;"></i>
                                 ${isConnected ? 'Sesi Aktif' : 'Belum Ada Cookies'}
                             </span>
                         </div>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
                         <input type="file" id="file-cookie-${t.target_key}" style="display: none;" onchange="uploadCookieFile('${t.target_key}', this)">
                         <button class="btn-clay btn-clay-secondary btn-clay-sm" style="width: 100%; justify-content: center;" onclick="document.getElementById('file-cookie-${t.target_key}').click()">
-                            <i data-lucide="key" style="width: 14px; height: 14px;"></i> Upload Cookies (.json / .txt)
+                            <i data-lucide="key-round"></i> Upload Cookies (.json / .txt)
                         </button>
 
                         <input type="file" id="file-zip-${t.target_key}" accept=".zip" style="display: none;" onchange="uploadProfileZip('${t.target_key}', this)">
                         <button class="btn-clay btn-clay-secondary btn-clay-sm" style="width: 100%; justify-content: center;" onclick="document.getElementById('file-zip-${t.target_key}').click()">
-                            <i data-lucide="archive" style="width: 14px; height: 14px;"></i> Upload Profil (.zip)
+                            <i data-lucide="archive"></i> Upload Profil Browser (.zip)
                         </button>
                     </div>
                 </div>
@@ -668,7 +764,7 @@ async function uploadProfileZip(targetKey, fileInput) {
     formData.append('file', file);
     fileInput.value = '';
 
-    showToast(`Mengunggah dan mengekstrak profil untuk ${targetKey}...`, 'info');
+    showToast(`Mengekstrak profil browser untuk ${targetKey}...`, 'info');
     try {
         const res = await apiFetch(`/api/platforms/${targetKey}/upload-profile`, {
             method: 'POST',
@@ -784,7 +880,7 @@ function initSSELogs() {
     };
 
     sseSource.onerror = () => {
-        // Retry silently
+        // Silently retry on reconnect
     };
 }
 
@@ -834,20 +930,20 @@ async function loadUsersTable() {
 
         tbody.innerHTML = users.map(u => {
             const roleBadge = u.is_admin
-                ? `<span style="background: rgba(168,85,247,0.15); color: #c084fc; padding: 2px 8px; border-radius: 50px; font-size: 11px; font-weight: 700;">Admin</span>`
-                : `<span style="background: rgba(16,185,129,0.15); color: #6ee7b7; padding: 2px 8px; border-radius: 50px; font-size: 11px; font-weight: 700;">Karyawan</span>`;
+                ? `<span style="background: rgba(168,85,247,0.18); color: #c084fc; border: 1px solid rgba(168,85,247,0.35); padding: 2px 9px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700;">Admin</span>`
+                : `<span style="background: rgba(16,185,129,0.18); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.35); padding: 2px 9px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700;">Karyawan</span>`;
 
             return `
                 <tr>
-                    <td style="font-family: var(--font-mono); color: var(--text-muted);">#${u.id}</td>
+                    <td style="font-family: var(--font-mono); color: var(--text-muted); font-weight: 700;">#${u.id}</td>
                     <td style="font-weight: 700; color: var(--text-primary);">${escapeHtml(u.username)}</td>
                     <td>${escapeHtml(u.account_name || '-')}</td>
                     <td>${roleBadge}</td>
-                    <td style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(u.created_at || '-')}</td>
+                    <td style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted);">${escapeHtml(u.created_at || '-')}</td>
                     <td style="text-align: center;">
                         ${!u.is_admin ? `
                             <button class="btn-clay btn-clay-secondary btn-clay-sm" onclick="deleteUserItem(${u.id}, '${escapeHtml(u.username)}')" style="color: #ef4444; padding: 4px 8px;">
-                                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                                <i data-lucide="trash-2"></i>
                             </button>
                         ` : '<span style="color:var(--text-muted); font-size: 11px;">Primary</span>'}
                     </td>
@@ -942,14 +1038,18 @@ async function initDashboard() {
 
             const schedBadge = document.getElementById('badge-scheduler-status');
             if (schedBadge) {
-                schedBadge.innerText = data.scheduler_running ? 'Scheduler Aktif' : 'Scheduler Berhenti';
-                schedBadge.className = `badge-clay ${data.scheduler_running ? 'badge-done' : 'badge-failed'}`;
+                const isRunning = data.scheduler_running;
+                schedBadge.innerHTML = `
+                    <span class="beacon-dot" style="${!isRunning ? 'background:#ef4444; box-shadow:0 0 8px #ef4444;' : ''}"></span>
+                    <span>${isRunning ? 'Scheduler Aktif' : 'Scheduler Berhenti'}</span>
+                `;
             }
         }
     } catch (_) {}
 
     loadPlatformCheckboxes();
     initDropzone();
+    initCharCounters();
 }
 
 window.addEventListener('DOMContentLoaded', () => {

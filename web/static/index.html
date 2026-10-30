@@ -3,54 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sin'X Manual Poster — Multi-Platform Social Publisher</title>
+    <title>Sin'X Manual Poster — Studio Publikasi Sosmed</title>
+
+    <!-- Google Fonts Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Styles -->
     <link rel="stylesheet" href="/static/css/clay.css">
+
     <!-- Lucide Icons -->
     <script src="/static/js/lucide.min.js"></script>
-    <style>
-        .spin {
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(8px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-    </style>
 </head>
 <body>
 
     <!-- ─────────────────────────────────────────────
          AUTH OVERLAY (Login Dialog)
          ───────────────────────────────────────────── -->
-    <div id="login-overlay" class="modal-overlay" style="display: none;">
-        <div class="clay-card auth-modal-card" style="width: 100%; max-width: 420px; padding: 2.5rem; border-radius: 24px; text-align: center;">
-            <div style="width: 60px; height: 60px; border-radius: 16px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem auto; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);">
-                <i data-lucide="send" style="width: 28px; height: 28px; color: #fff;"></i>
+    <div id="login-overlay" class="modal-overlay">
+        <div class="clay-card" style="width: 100%; max-width: 420px; padding: 2.4rem; text-align: center;">
+            <div class="logo-box" style="margin: 0 auto 1.2rem auto; width: 56px; height: 56px; border-radius: 16px;">
+                <i data-lucide="send" style="width: 26px; height: 26px;"></i>
             </div>
-            <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Sin'X Manual Poster</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.8rem;">Silakan masuk dengan akun Admin atau Karyawan Anda.</p>
+            <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">
+                Sin'X <span style="color: var(--primary-light);">Manual Poster</span>
+            </h2>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.8rem;">
+                Silakan masuk dengan akun Admin atau Karyawan Anda.
+            </p>
 
-            <form onsubmit="handleLogin(event)" style="display: flex; flex-direction: column; gap: 1rem; text-align: left;">
-                <div>
-                    <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;">Username</label>
-                    <input type="text" id="login-username" class="clay-input" placeholder="Masukkan username" required autocomplete="username">
+            <form onsubmit="handleLogin(event)" style="display: flex; flex-direction: column; gap: 14px; text-align: left;">
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label">Username</label>
+                    <input type="text" id="login-username" class="clay-input" placeholder="Masukkan username Anda" required autocomplete="username">
                 </div>
-                <div>
-                    <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;">Password</label>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label">Password</label>
                     <input type="password" id="login-password" class="clay-input" placeholder="Masukkan password" required autocomplete="current-password">
                 </div>
-                <button type="submit" class="btn-clay btn-clay-primary" style="width: 100%; justify-content: center; margin-top: 10px; padding: 12px;">
-                    <i data-lucide="log-in"></i> Masuk ke Dashboard
+                <button type="submit" class="btn-clay btn-clay-primary" style="width: 100%; justify-content: center; margin-top: 10px; padding: 12px; font-size: 0.95rem;">
+                    <i data-lucide="log-in"></i> Masuk ke Studio
                 </button>
             </form>
         </div>
@@ -61,32 +54,34 @@
          ───────────────────────────────────────────── -->
     <header class="app-header">
         <div class="header-left">
-            <div class="logo-box" style="background: var(--primary-gradient); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);">
-                <i data-lucide="send" style="width: 22px; height: 22px; color: #fff;"></i>
+            <div class="logo-box">
+                <i data-lucide="send"></i>
             </div>
-            <div>
-                <h1 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--text-primary); letter-spacing: -0.02em;">
-                    Sin'X <span style="color: var(--primary-light);">Manual Poster</span>
+            <div class="header-title-wrap">
+                <h1>
+                    Sin'X <span>Manual Poster</span>
+                    <span class="brand-badge">Studio</span>
                 </h1>
-                <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">Multi-Platform Direct Video Publisher</div>
+                <p>Direct Multi-Platform Social Media Video Publisher & Scheduler</p>
             </div>
         </div>
 
-        <div class="header-right" style="display: flex; align-items: center; gap: 14px;">
-            <span id="badge-scheduler-status" class="badge-clay badge-done" style="font-size: 0.75rem;">
-                <i data-lucide="clock" style="width: 12px; height: 12px; display: inline;"></i> Scheduler Aktif
-            </span>
+        <div class="header-right">
+            <div id="badge-scheduler-status" class="status-beacon-pill">
+                <span class="beacon-dot"></span>
+                <span>Scheduler Aktif</span>
+            </div>
 
-            <div class="user-pill" style="display: flex; align-items: center; gap: 10px; background: var(--bg-surface); padding: 5px 12px; border-radius: 50px; border: 1px solid var(--clay-border);">
-                <div style="width: 26px; height: 26px; border-radius: 50%; background: rgba(99, 102, 241, 0.2); color: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">
-                    <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+            <div class="user-pill">
+                <div class="user-avatar">
+                    <i data-lucide="user" style="width: 15px; height: 15px;"></i>
                 </div>
-                <div style="text-align: left;">
-                    <div id="user-badge-name" style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary);">User</div>
-                    <div id="user-badge-role" style="font-size: 0.65rem; color: var(--primary-light); font-weight: 600; text-transform: uppercase;">Role</div>
+                <div class="user-info">
+                    <span id="user-badge-name" class="user-name">User</span>
+                    <span id="user-badge-role" class="user-role-badge">Role</span>
                 </div>
-                <button onclick="handleLogout()" class="btn-clay btn-clay-secondary btn-clay-sm" title="Logout" style="padding: 4px 8px; margin-left: 6px; color: #f87171;">
-                    <i data-lucide="log-out" style="width: 13px; height: 13px;"></i>
+                <button onclick="handleLogout()" class="btn-clay btn-clay-secondary btn-clay-sm" title="Keluar / Logout" style="padding: 4px 8px; margin-left: 4px; color: #f87171;">
+                    <i data-lucide="log-out"></i>
                 </button>
             </div>
         </div>
@@ -131,39 +126,48 @@
              TAB 1: UPLOAD & POST (Manual Video Creator)
              ============================================================ -->
         <section id="tab-create" class="tab-content active">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+            <div class="create-grid">
 
-                <!-- Left Column: Video Dropzone & Preview -->
+                <!-- Left Column: Video Dropzone & Player -->
                 <div class="clay-card">
                     <div class="clay-card-header">
-                        <i data-lucide="video" class="clay-card-icon"></i>
+                        <div class="clay-card-icon">
+                            <i data-lucide="film"></i>
+                        </div>
                         <div>
-                            <h3 class="clay-card-title">File Video Manual</h3>
-                            <p class="clay-card-subtitle">Pilih atau seret file video (.mp4, .mov, .webm) yang sudah Anda edit.</p>
+                            <h3 class="clay-card-title">1. Pilih Video Konten</h3>
+                            <p class="clay-card-subtitle">Pilih file video yang telah Anda edit secara manual untuk diposting.</p>
                         </div>
                     </div>
 
-                    <!-- Dropzone -->
+                    <!-- Hidden File Input -->
                     <input type="file" id="video-file-input" accept="video/mp4,video/quicktime,video/webm" style="display: none;">
+
+                    <!-- Drag & Drop Area -->
                     <div id="video-dropzone" class="video-dropzone" onclick="document.getElementById('video-file-input').click()">
-                        <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(99, 102, 241, 0.15); color: var(--primary-light); display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="upload" style="width: 24px; height: 24px;"></i>
+                        <div class="dropzone-icon-bubble">
+                            <i data-lucide="upload" style="width: 26px; height: 26px;"></i>
                         </div>
-                        <div style="font-weight: 700; color: var(--text-primary); font-size: 1rem;">
-                            Klik untuk Pilih Video atau Seret File ke Sini
+                        <div>
+                            <div class="dropzone-title">Klik untuk Pilih Video atau Seret ke Sini</div>
+                            <div class="dropzone-desc">File akan disimpan aman di server untuk distribusi multi-platform</div>
                         </div>
-                        <div style="font-size: 0.78rem; color: var(--text-muted);">
-                            Mendukung MP4, MOV, WEBM (Hingga 2 GB)
+                        <div class="format-tags-row">
+                            <span class="format-tag">MP4</span>
+                            <span class="format-tag">MOV</span>
+                            <span class="format-tag">WEBM</span>
+                            <span class="format-tag">Maks 2 GB</span>
                         </div>
                     </div>
 
-                    <!-- Upload Progress Bar -->
-                    <div id="upload-progress-wrap" style="display: none; margin-top: 14px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">
+                    <!-- Upload Progress -->
+                    <div id="upload-progress-wrap" class="upload-progress-container">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);">
                             <span>Mengunggah video ke server...</span>
+                            <span id="upload-progress-text" style="color: var(--primary-light);">30%</span>
                         </div>
-                        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
-                            <div id="upload-progress-bar" style="width: 0%; height: 100%; background: var(--primary-gradient); transition: width 0.3s ease;"></div>
+                        <div class="upload-progress-track">
+                            <div id="upload-progress-bar" class="upload-progress-bar"></div>
                         </div>
                     </div>
 
@@ -171,88 +175,115 @@
                     <div id="video-preview-wrap" class="video-preview-container">
                         <video id="video-preview-player" controls preload="metadata"></video>
                     </div>
-                    <div id="video-file-info" style="font-size: 0.8rem; margin-top: 10px; color: var(--text-secondary);"></div>
+
+                    <!-- Video Metadata & Re-select Bar -->
+                    <div id="video-file-info-wrap" style="display: none; margin-top: 12px;">
+                        <div class="video-file-info-bar">
+                            <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                                <i data-lucide="check-circle" style="width: 16px; height: 16px; color: #10b981; flex-shrink: 0;"></i>
+                                <span id="video-file-info" style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">-</span>
+                            </div>
+                            <button type="button" class="btn-clay btn-clay-secondary btn-clay-sm" onclick="document.getElementById('video-file-input').click()" style="flex-shrink: 0;">
+                                <i data-lucide="refresh-cw"></i> Ganti
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Right Column: Content Form & Platform Selection -->
+                <!-- Right Column: Post Details & Target Platforms -->
                 <div class="clay-card">
                     <div class="clay-card-header">
-                        <i data-lucide="edit-3" class="clay-card-icon"></i>
+                        <div class="clay-card-icon">
+                            <i data-lucide="sparkles"></i>
+                        </div>
                         <div>
-                            <h3 class="clay-card-title">Detail Postingan & Platform</h3>
-                            <p class="clay-card-subtitle">Lengkapi judul, deskripsi/caption, dan pilih platform target.</p>
+                            <h3 class="clay-card-title">2. Detail Post & Platform Tujuan</h3>
+                            <p class="clay-card-subtitle">Tentukan judul, deskripsi/caption, hashtags, dan platform akun sosmed tujuan.</p>
                         </div>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Form Controls -->
+                    <form onsubmit="event.preventDefault(); submitManualPost();">
+
                         <!-- Title Input -->
-                        <div>
-                            <label class="form-label" style="font-weight: 700; font-size: 0.82rem; color: var(--text-primary); display: flex; justify-content: space-between;">
-                                <span>Judul Video *</span>
-                                <span style="font-size: 0.75rem; color: var(--text-muted);">Maks 100 karakter (YT/TikTok)</span>
+                        <div class="form-group">
+                            <label class="form-label" for="post-title">
+                                <span>Judul Postingan / Shorts *</span>
+                                <span id="title-char-count" class="char-counter">0 / 100</span>
                             </label>
-                            <input type="text" id="post-title" class="clay-input" placeholder="Contoh: Tips Produktivitas Harian #shorts" maxlength="100">
+                            <input type="text" id="post-title" class="clay-input" placeholder="Contoh: 5 Rahasia Finansial Bebas Hutang #shorts" maxlength="100" autocomplete="off">
                         </div>
 
                         <!-- Caption / Description Textarea -->
-                        <div>
-                            <label class="form-label" style="font-weight: 700; font-size: 0.82rem; color: var(--text-primary); display: block; margin-bottom: 6px;">
-                                Deskripsi / Caption
+                        <div class="form-group">
+                            <label class="form-label" for="post-description">
+                                <span>Deskripsi / Caption</span>
+                                <span id="desc-char-count" class="char-counter">0 karakter</span>
                             </label>
-                            <textarea id="post-description" class="clay-textarea" rows="4" placeholder="Tulis caption lengkap untuk Instagram Reels, Facebook, dan YouTube Shorts di sini..."></textarea>
+                            <textarea id="post-description" class="clay-textarea" rows="4" placeholder="Tuliskan deskripsi lengkap untuk Instagram Reels, Facebook Reels, TikTok, dan YouTube di sini..."></textarea>
                         </div>
 
-                        <!-- Hashtags Input -->
-                        <div>
-                            <label class="form-label" style="font-weight: 700; font-size: 0.82rem; color: var(--text-primary); display: block; margin-bottom: 6px;">
-                                Hashtags (Opsional)
+                        <!-- Hashtags Input & Quick Chips -->
+                        <div class="form-group">
+                            <label class="form-label" for="post-tags">
+                                <span>Hashtags (Otomatis ditambahkan ke akhir postingan)</span>
                             </label>
-                            <input type="text" id="post-tags" class="clay-input" placeholder="#shorts #reels #trending #fyp (Pisahkan dengan spasi)">
+                            <input type="text" id="post-tags" class="clay-input" placeholder="#shorts #reels #fyp #trending">
+                            <div class="quick-tags-wrap">
+                                <span class="tag-suggestion-pill" onclick="appendTag('#shorts')">+ #shorts</span>
+                                <span class="tag-suggestion-pill" onclick="appendTag('#reels')">+ #reels</span>
+                                <span class="tag-suggestion-pill" onclick="appendTag('#fyp')">+ #fyp</span>
+                                <span class="tag-suggestion-pill" onclick="appendTag('#viral')">+ #viral</span>
+                                <span class="tag-suggestion-pill" onclick="appendTag('#trending')">+ #trending</span>
+                                <span class="tag-suggestion-pill" onclick="appendTag('#foryou')">+ #foryou</span>
+                                <span class="tag-suggestion-pill" onclick="appendTag('#videoshort')">+ #videoshort</span>
+                            </div>
                         </div>
 
                         <!-- Target Platforms Selector -->
-                        <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <label class="form-label" style="font-weight: 700; font-size: 0.82rem; color: var(--text-primary); margin: 0;">
-                                    Platform Tujuan Publikasi *
-                                </label>
+                        <div class="form-group" style="margin-top: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label class="form-label" style="margin: 0;">Platform Tujuan Publikasi *</label>
                                 <div style="display: flex; gap: 8px;">
-                                    <button type="button" class="btn-clay btn-clay-secondary btn-clay-sm" onclick="selectAllPlatforms(true)" style="padding: 2px 8px; font-size: 11px;">Pilih Semua</button>
-                                    <button type="button" class="btn-clay btn-clay-secondary btn-clay-sm" onclick="selectAllPlatforms(false)" style="padding: 2px 8px; font-size: 11px;">Hapus Semua</button>
+                                    <button type="button" class="btn-clay btn-clay-secondary btn-clay-sm" onclick="selectAllPlatforms(true)" style="padding: 3px 8px; font-size: 11px;">✓ Pilih Semua</button>
+                                    <button type="button" class="btn-clay btn-clay-secondary btn-clay-sm" onclick="selectAllPlatforms(false)" style="padding: 3px 8px; font-size: 11px;">✕ Hapus Semua</button>
                                 </div>
                             </div>
                             <div id="platform-checkboxes-container" class="platform-grid">
-                                <!-- Dynamically loaded from /api/platforms -->
+                                <!-- Populated dynamically from /api/platforms -->
                             </div>
                         </div>
 
                         <!-- Timing: Post Now vs Schedule -->
-                        <div style="background: rgba(0,0,0,0.22); padding: 14px; border-radius: 14px; border: 1px solid var(--clay-border);">
-                            <label class="form-label" style="font-weight: 700; font-size: 0.82rem; color: var(--text-primary); display: block; margin-bottom: 10px;">
-                                Waktu Publikasi
-                            </label>
-                            <div style="display: flex; gap: 20px; align-items: center;">
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: var(--text-primary);">
-                                    <input type="radio" name="timing_mode" id="timing-now" value="now" checked onchange="toggleScheduleOptions(false)" style="accent-color: var(--primary); width: 16px; height: 16px;">
-                                    <span>⚡ Post Sekarang (Instan)</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: var(--text-primary);">
-                                    <input type="radio" name="timing_mode" id="timing-schedule" value="schedule" onchange="toggleScheduleOptions(true)" style="accent-color: var(--primary); width: 16px; height: 16px;">
-                                    <span>⏰ Jadwalkan Post</span>
-                                </label>
+                        <div class="timing-panel" style="margin-top: 20px;">
+                            <label class="form-label" style="margin: 0;">Waktu Publikasi</label>
+                            <div class="timing-segment-wrap">
+                                <button type="button" id="seg-timing-now" class="timing-segment-btn active" onclick="setTimingMode('now')">
+                                    <i data-lucide="zap"></i> Post Sekarang (Instan)
+                                </button>
+                                <button type="button" id="seg-timing-schedule" class="timing-segment-btn" onclick="setTimingMode('schedule')">
+                                    <i data-lucide="clock"></i> Jadwalkan Post
+                                </button>
                             </div>
 
-                            <div id="schedule-datetime-wrap" style="display: none; margin-top: 12px;">
-                                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Pilih Tanggal & Jam Tayang (WIB):</label>
-                                <input type="datetime-local" id="post-scheduled-time" class="clay-input" style="max-width: 280px;">
+                            <!-- Hidden radios for form binding -->
+                            <input type="radio" name="timing_mode" id="timing-now" value="now" checked style="display: none;">
+                            <input type="radio" name="timing_mode" id="timing-schedule" value="schedule" style="display: none;">
+
+                            <div id="schedule-datetime-wrap">
+                                <label class="form-label" style="margin-bottom: 6px; font-size: 0.76rem;">
+                                    <span>Tentukan Tanggal & Jam Tayang (WIB):</span>
+                                </label>
+                                <input type="datetime-local" id="post-scheduled-time" class="clay-input" style="max-width: 320px;">
                             </div>
                         </div>
 
-                        <!-- Submit Button -->
-                        <button type="button" id="btn-submit-post" class="btn-clay btn-clay-primary" onclick="submitManualPost()" style="width: 100%; justify-content: center; padding: 14px; font-size: 1rem;">
-                            <i data-lucide="send"></i> Publikasikan / Jadwalkan Postingan
+                        <!-- Submit Action Button -->
+                        <button type="button" id="btn-submit-post" class="btn-clay btn-clay-primary" onclick="submitManualPost()" style="width: 100%; justify-content: center; padding: 14px; font-size: 1rem; margin-top: 10px;">
+                            <i data-lucide="send"></i> Publikasikan Postingan Sekarang
                         </button>
-                    </div>
+
+                    </form>
                 </div>
 
             </div>
@@ -263,39 +294,65 @@
              TAB 2: DAFTAR POSTINGAN (Posts & Queue Table)
              ============================================================ -->
         <section id="tab-posts" class="tab-content">
+
             <!-- Stats Summary Cards -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;">
-                <div class="clay-card" style="padding: 1.2rem;">
-                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">TOTAL POSTINGAN</div>
-                    <div id="stat-total-posts" style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">0</div>
+            <div class="stats-summary-grid">
+                <div class="stat-kpi-card">
+                    <div class="stat-kpi-bubble bubble-indigo">
+                        <i data-lucide="layers"></i>
+                    </div>
+                    <div>
+                        <div class="stat-kpi-label">TOTAL POSTINGAN</div>
+                        <div id="stat-total-posts" class="stat-kpi-val">0</div>
+                    </div>
                 </div>
-                <div class="clay-card" style="padding: 1.2rem;">
-                    <div style="font-size: 0.75rem; color: #fbbf24; font-weight: 600;">DIJADWALKAN</div>
-                    <div id="stat-scheduled" style="font-size: 1.8rem; font-weight: 800; color: #fbbf24; margin-top: 4px;">0</div>
+
+                <div class="stat-kpi-card">
+                    <div class="stat-kpi-bubble bubble-amber">
+                        <i data-lucide="clock"></i>
+                    </div>
+                    <div>
+                        <div class="stat-kpi-label">DIJADWALKAN</div>
+                        <div id="stat-scheduled" class="stat-kpi-val" style="color: #fbbf24;">0</div>
+                    </div>
                 </div>
-                <div class="clay-card" style="padding: 1.2rem;">
-                    <div style="font-size: 0.75rem; color: #34d399; font-weight: 600;">BERHASIL PUBLISH</div>
-                    <div id="stat-done" style="font-size: 1.8rem; font-weight: 800; color: #34d399; margin-top: 4px;">0</div>
+
+                <div class="stat-kpi-card">
+                    <div class="stat-kpi-bubble bubble-emerald">
+                        <i data-lucide="check-circle-2"></i>
+                    </div>
+                    <div>
+                        <div class="stat-kpi-label">BERHASIL PUBLISH</div>
+                        <div id="stat-done" class="stat-kpi-val" style="color: #34d399;">0</div>
+                    </div>
                 </div>
-                <div class="clay-card" style="padding: 1.2rem;">
-                    <div style="font-size: 0.75rem; color: #f87171; font-weight: 600;">GAGAL UPLOAD</div>
-                    <div id="stat-failed" style="font-size: 1.8rem; font-weight: 800; color: #f87171; margin-top: 4px;">0</div>
+
+                <div class="stat-kpi-card">
+                    <div class="stat-kpi-bubble bubble-rose">
+                        <i data-lucide="alert-triangle"></i>
+                    </div>
+                    <div>
+                        <div class="stat-kpi-label">GAGAL UPLOAD</div>
+                        <div id="stat-failed" class="stat-kpi-val" style="color: #f87171;">0</div>
+                    </div>
                 </div>
             </div>
 
             <!-- Table Card -->
             <div class="clay-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
                     <div class="clay-card-header" style="margin: 0;">
-                        <i data-lucide="layout-list" class="clay-card-icon"></i>
+                        <div class="clay-card-icon">
+                            <i data-lucide="layout-list"></i>
+                        </div>
                         <div>
-                            <h3 class="clay-card-title">Antrean & Riwayat Postingan</h3>
-                            <p class="clay-card-subtitle">Pantau status publikasi dan link hasil upload per platform sosmed.</p>
+                            <h3 class="clay-card-title">Antrean & Riwayat Publikasi</h3>
+                            <p class="clay-card-subtitle">Pantau status pengunggahan video dan klik link hasil postingan di tiap sosmed.</p>
                         </div>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <select id="filter-post-status" class="clay-input" style="padding: 6px 12px; font-size: 0.85rem;" onchange="loadPosts(1)">
+                        <select id="filter-post-status" class="clay-input" style="padding: 7px 14px; font-size: 0.82rem; width: auto;" onchange="loadPosts(1)">
                             <option value="">Semua Status</option>
                             <option value="scheduled">Dijadwalkan</option>
                             <option value="uploading">Sedang Upload</option>
@@ -314,10 +371,10 @@
                             <tr>
                                 <th style="width: 50px;">ID</th>
                                 <th>Judul & File Video</th>
-                                <th style="width: 110px;">Status</th>
+                                <th style="width: 120px;">Status</th>
                                 <th>Distribusi Platform</th>
-                                <th style="width: 160px;">Jadwal / Waktu</th>
-                                <th style="width: 100px; text-align: center;">Aksi</th>
+                                <th style="width: 170px;">Jadwal / Waktu</th>
+                                <th style="width: 110px; text-align: center;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="posts-table-body">
@@ -327,8 +384,8 @@
                 </div>
 
                 <!-- Pagination -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
-                    <span id="posts-page-info" style="font-size: 0.82rem; color: var(--text-muted);">Halaman 1</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 10px;">
+                    <span id="posts-page-info" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Halaman 1</span>
                     <div style="display: flex; gap: 8px;">
                         <button id="btn-posts-prev" class="btn-clay btn-clay-secondary btn-clay-sm" onclick="loadPosts(currentPage - 1)">
                             <i data-lucide="chevron-left"></i> Prev
@@ -347,16 +404,18 @@
              ============================================================ -->
         <section id="tab-platforms" class="tab-content">
             <div class="clay-card" style="margin-bottom: 20px;">
-                <div class="clay-card-header">
-                    <i data-lucide="key" class="clay-card-icon"></i>
+                <div class="clay-card-header" style="margin: 0;">
+                    <div class="clay-card-icon">
+                        <i data-lucide="key-round"></i>
+                    </div>
                     <div>
                         <h3 class="clay-card-title">Manajemen Akun Sosmed & Cookies</h3>
-                        <p class="clay-card-subtitle">Unggah cookies (.json / .txt) atau profil browser (.zip) untuk masing-masing kartu platform tujuan.</p>
+                        <p class="clay-card-subtitle">Unggah cookies (.json / .txt) atau profil browser (.zip) untuk masing-masing kartu platform tujuan. Cookies terisolasi per akun karyawan Anda.</p>
                     </div>
                 </div>
             </div>
 
-            <div id="platforms-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px;">
+            <div id="platforms-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px;">
                 <!-- Dynamically loaded -->
             </div>
         </section>
@@ -369,28 +428,30 @@
             <div style="max-width: 680px; margin: 0 auto;">
                 <div class="clay-card">
                     <div class="clay-card-header">
-                        <i data-lucide="sliders" class="clay-card-icon"></i>
+                        <div class="clay-card-icon">
+                            <i data-lucide="sliders"></i>
+                        </div>
                         <div>
                             <h3 class="clay-card-title">Pengaturan Akun & Notifikasi</h3>
-                            <p class="clay-card-subtitle">Konfigurasikan jeda upload, bot Telegram, dan proxy residensial.</p>
+                            <p class="clay-card-subtitle">Konfigurasikan jeda antar posting platform, bot Telegram, dan proxy residensial.</p>
                         </div>
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div>
-                            <label class="form-label" style="font-weight: 700; font-size: 0.82rem; color: var(--text-primary); display: block; margin-bottom: 6px;">Zona Waktu</label>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label">Zona Waktu</label>
                             <input type="text" id="cfg-timezone" class="clay-input" value="Asia/Jakarta">
                         </div>
 
-                        <div>
-                            <label class="form-label" style="font-weight: 700; font-size: 0.82rem; color: var(--text-primary); display: block; margin-bottom: 6px;">Jeda Antar Platform (Detik)</label>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label">Jeda Antar Platform (Detik)</label>
                             <input type="number" id="cfg-delay" class="clay-input" value="25" min="5" max="300">
                         </div>
 
-                        <div>
-                            <label class="form-label" style="font-weight: 700; font-size: 0.82rem; color: var(--text-primary); display: block; margin-bottom: 6px;">Proxy Pribadi (Opsional)</label>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label">Proxy Pribadi (Opsional)</label>
                             <input type="text" id="cfg-proxy" class="clay-input" placeholder="http://user:pass@ip:port atau socks5://ip:port">
-                            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: block;">Kosongkan jika menggunakan koneksi server langsung.</span>
+                            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: block;">Kosongkan jika menggunakan koneksi jaringan server langsung.</span>
                         </div>
 
                         <hr style="border: none; border-top: 1px solid var(--clay-border); margin: 6px 0;">
@@ -399,7 +460,7 @@
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-primary);">Notifikasi Bot Telegram</h4>
-                                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">Kirim laporan link postingan yang berhasil dipublikasi langsung ke Telegram.</p>
+                                <p style="font-size: 0.76rem; color: var(--text-muted); margin: 2px 0 0 0;">Kirim laporan link postingan yang berhasil dipublikasikan langsung ke chat Telegram Anda.</p>
                             </div>
                             <label class="clay-switch">
                                 <input type="checkbox" id="cfg-tg-enabled">
@@ -407,17 +468,17 @@
                             </label>
                         </div>
 
-                        <div>
-                            <label class="form-label" style="font-weight: 700; font-size: 0.82rem; color: var(--text-primary); display: block; margin-bottom: 6px;">Telegram Bot Token</label>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label">Telegram Bot Token</label>
                             <input type="text" id="cfg-tg-token" class="clay-input" placeholder="123456789:ABCdefGhIJKlmNoPQRstuVWXyz">
                         </div>
 
-                        <div>
-                            <label class="form-label" style="font-weight: 700; font-size: 0.82rem; color: var(--text-primary); display: block; margin-bottom: 6px;">Telegram Chat ID</label>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label">Telegram Chat ID</label>
                             <input type="text" id="cfg-tg-chat-id" class="clay-input" placeholder="1755321582 atau -100xxxxxxxx">
                         </div>
 
-                        <div style="display: flex; gap: 12px; margin-top: 10px;">
+                        <div style="display: flex; gap: 12px; margin-top: 12px;">
                             <button type="button" class="btn-clay btn-clay-secondary" onclick="testTelegram()" style="flex: 1; justify-content: center;">
                                 <i data-lucide="send"></i> Tes Kirim Pesan
                             </button>
@@ -436,12 +497,14 @@
              ============================================================ -->
         <section id="tab-logs" class="tab-content">
             <div class="clay-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
                     <div class="clay-card-header" style="margin: 0;">
-                        <i data-lucide="terminal" class="clay-card-icon"></i>
+                        <div class="clay-card-icon">
+                            <i data-lucide="terminal"></i>
+                        </div>
                         <div>
-                            <h3 class="clay-card-title">Real-Time Live Logs</h3>
-                            <p class="clay-card-subtitle">Pantau alur eksekusi browser Playwright saat mengunggah video ke sosial media.</p>
+                            <h3 class="clay-card-title">Real-Time Cloud Logs</h3>
+                            <p class="clay-card-subtitle">Pantau alur otomasi Playwright saat upload video ke sosmed secara live.</p>
                         </div>
                     </div>
 
@@ -455,8 +518,18 @@
                     </div>
                 </div>
 
-                <div id="live-logs-terminal" class="logs-terminal" style="height: 480px; overflow-y: auto; background: #080d14; border-radius: 12px; padding: 14px; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.5; border: 1px solid var(--clay-border);">
-                    <!-- Streamed entries -->
+                <div class="logs-terminal-wrap">
+                    <div class="terminal-topbar">
+                        <div class="terminal-dots">
+                            <span class="terminal-dot dot-red"></span>
+                            <span class="terminal-dot dot-yellow"></span>
+                            <span class="terminal-dot dot-green"></span>
+                        </div>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">playwright-publisher-stream</span>
+                    </div>
+                    <div id="live-logs-terminal" class="logs-terminal">
+                        <!-- Streamed entries -->
+                    </div>
                 </div>
             </div>
         </section>
@@ -467,12 +540,14 @@
              ============================================================ -->
         <section id="tab-users" class="tab-content">
             <div class="clay-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
                     <div class="clay-card-header" style="margin: 0;">
-                        <i data-lucide="users" class="clay-card-icon"></i>
+                        <div class="clay-card-icon">
+                            <i data-lucide="users"></i>
+                        </div>
                         <div>
                             <h3 class="clay-card-title">Kelola Akun Karyawan</h3>
-                            <p class="clay-card-subtitle">Buat dan atur akun login karyawan. Setiap karyawan memiliki antrean & profil akun terisolasi.</p>
+                            <p class="clay-card-subtitle">Buat dan kelola akses akun karyawan. Setiap akun memiliki cookies, antrean, dan profil sosmed yang terpisah.</p>
                         </div>
                     </div>
 
@@ -487,8 +562,8 @@
                             <tr>
                                 <th style="width: 50px;">ID</th>
                                 <th>Username</th>
-                                <th>Profil Akun</th>
-                                <th style="width: 100px;">Role</th>
+                                <th>Profil / Niche Akun</th>
+                                <th style="width: 110px;">Role</th>
                                 <th>Dibuat Pada</th>
                                 <th style="width: 80px; text-align: center;">Aksi</th>
                             </tr>
@@ -505,28 +580,28 @@
 
     <!-- Modal Create User -->
     <div id="modal-create-user" class="modal-overlay">
-        <div class="clay-card" style="width: 100%; max-width: 440px; padding: 2rem; border-radius: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
-                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">Tambah Karyawan Baru</h3>
+        <div class="clay-card" style="width: 100%; max-width: 440px; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem;">
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--text-primary);">Tambah Karyawan Baru</h3>
                 <button class="btn-clay btn-clay-secondary btn-clay-sm" onclick="closeModal('modal-create-user')" style="padding: 4px 8px;">✕</button>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 14px;">
-                <div>
-                    <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Username *</label>
-                    <input type="text" id="modal-username" class="clay-input" placeholder="Contoh: editor1">
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label">Username *</label>
+                    <input type="text" id="modal-username" class="clay-input" placeholder="Contoh: editor_budi">
                 </div>
-                <div>
-                    <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Password * (Minimal 6 karakter)</label>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label">Password * (Minimal 6 karakter)</label>
                     <input type="password" id="modal-password" class="clay-input" placeholder="Password akun">
                 </div>
-                <div>
-                    <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Nama Profil / Niche Akun</label>
-                    <input type="text" id="modal-account-name" class="clay-input" placeholder="Contoh: Niche Edukasi (opsional)">
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label">Nama Profil / Niche Akun</label>
+                    <input type="text" id="modal-account-name" class="clay-input" placeholder="Contoh: Tim Konten Horor (opsional)">
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <input type="checkbox" id="modal-is-admin" style="accent-color: var(--primary); width: 16px; height: 16px;">
-                    <label for="modal-is-admin" style="font-size: 0.85rem; color: var(--text-primary); cursor: pointer;">Jadikan Sebagai Admin</label>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                    <input type="checkbox" id="modal-is-admin" style="accent-color: var(--primary); width: 17px; height: 17px; cursor: pointer;">
+                    <label for="modal-is-admin" style="font-size: 0.85rem; color: var(--text-primary); cursor: pointer; font-weight: 600;">Jadikan Sebagai Admin</label>
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
