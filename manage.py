@@ -19,15 +19,29 @@ from pathlib import Path
 # Add project root to sys.path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from rich.console import Console
-from rich.table import Table
+import re
+
+try:
+    from rich.console import Console
+    from rich.table import Table
+    console = Console()
+except ImportError:
+    class DummyConsole:
+        def print(self, *args, **kwargs):
+            text = " ".join(str(a) for a in args)
+            clean = re.sub(r'\[/?[^\]]+\]', '', text)
+            print(clean)
+    console = DummyConsole()
+    Table = None
 
 from poster.config import get_config
 from poster.db.models import init_db
 from poster.utils.hardware import get_system_info
-from poster.utils.logger import setup_logging
-
-console = Console()
+try:
+    from poster.utils.logger import setup_logging
+except ImportError:
+    def setup_logging(*args, **kwargs):
+        pass
 
 
 def _ensure_env():
@@ -45,8 +59,16 @@ def cmd_run_web(args):
     host = args.host or cfg.HOST
     port = args.port or cfg.PORT
 
+    try:
+        import uvicorn
+    except ImportError:
+        console.print("[bold red]Paket dependensi belum terpasang![/bold red]")
+        console.print("[yellow]Silakan jalankan perintah berikut terlebih dahulu:[/yellow]")
+        console.print("    pip install -r requirements.txt")
+        console.print("    playwright install chromium firefox")
+        sys.exit(1)
+
     console.print(f"[bold cyan]🚀 Menjalankan Sin'X Manual Poster di http://{host}:{port}...[/bold cyan]")
-    import uvicorn
     uvicorn.run("web.server:app", host=host, port=port, reload=args.reload)
 
 

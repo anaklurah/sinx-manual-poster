@@ -5,10 +5,14 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from rich.console import Console
-from rich.logging import RichHandler
-
-console: Console = Console(stderr=True)
+try:
+    from rich.console import Console
+    from rich.logging import RichHandler
+    console: Console = Console(stderr=True)
+    HAS_RICH = True
+except ImportError:
+    console = None
+    HAS_RICH = False
 
 _LOG_FORMAT: str = "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
 _DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"
@@ -30,15 +34,21 @@ def setup_logging(
     for h in custom_handlers:
         root_logger.addHandler(h)
 
-    rich_handler = RichHandler(
-        console=console,
-        level=numeric_level,
-        show_time=True,
-        show_level=True,
-        show_path=False,
-        rich_tracebacks=True,
-    )
-    root_logger.addHandler(rich_handler)
+    if HAS_RICH and console is not None:
+        rich_handler = RichHandler(
+            console=console,
+            level=numeric_level,
+            show_time=True,
+            show_level=True,
+            show_path=False,
+            rich_tracebacks=True,
+        )
+        root_logger.addHandler(rich_handler)
+    else:
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(numeric_level)
+        stream_handler.setFormatter(logging.Formatter(_LOG_FORMAT, datefmt=_DATE_FORMAT))
+        root_logger.addHandler(stream_handler)
 
     if log_file is not None:
         log_path = Path(log_file)
