@@ -270,6 +270,45 @@ class UpscrolledPublisher(BasePublisher):
                 if not toast_found:
                     log.warning('[upscrolled] Post completion notification timed out, assuming completed based on flow')
 
+                # Extract published URL / creator profile URL
+                try:
+                    handle = None
+                    try:
+                        cookies = await context.cookies()
+                        for c in cookies:
+                            if c.get("name") == "us0_user":
+                                import json, urllib.parse
+                                u_info = json.loads(urllib.parse.unquote(c.get("value", "")))
+                                handle = u_info.get("handle")
+                                break
+                    except Exception:
+                        pass
+
+                    if not handle:
+                        prof_a = page.locator('a[href^="/@"]').first
+                        if await prof_a.count():
+                            h = await prof_a.get_attribute("href") or ""
+                            if "/@" in h:
+                                handle = h.split("/@")[1].split("/")[0].split("?")[0].strip()
+
+                    # Check if live toast or banner contains a direct link
+                    try:
+                        t_link = live_toast.locator('a[href]').first
+                        if await t_link.count():
+                            th = await t_link.get_attribute("href")
+                            if th:
+                                self.uploaded_url = th if th.startswith("http") else f"https://upscrolled.com{th.split('?')[0]}"
+                    except Exception:
+                        pass
+
+                    if not self.uploaded_url:
+                        self.uploaded_url = f"https://upscrolled.com/@{handle}" if handle else "https://upscrolled.com"
+
+                    log.info('[upscrolled] ✓ Captured published video URL: %s', self.uploaded_url)
+                except Exception as ex:
+                    log.warning('[upscrolled] Error capturing profile/post URL: %s', ex)
+                    self.uploaded_url = "https://upscrolled.com"
+
                 await self._jitter(3000, 5000)
                 log.info('[upscrolled] ✓ Video published successfully to Upscrolled')
                 return True

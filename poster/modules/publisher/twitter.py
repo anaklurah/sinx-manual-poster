@@ -276,6 +276,9 @@ class TwitterPublisher(BasePublisher):
                     except Exception as ex:
                         log.debug('[twitter] Timeline link capture error: %s', ex)
 
+                if not self.uploaded_url:
+                    self.uploaded_url = f"https://x.com/{u_name}" if 'u_name' in locals() and u_name else "https://x.com"
+
                 # Cooldown to ensure network upload finalized before closing context
                 log.info('[twitter] Tweet successfully published! Cooldown before closing...')
                 await self._jitter(4000, 6000)

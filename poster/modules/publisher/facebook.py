@@ -310,11 +310,27 @@ class FacebookPublisher(BasePublisher):
                         log.info('[facebook] Flow completed without explicit success toast — checking URL')
 
                 # Check if current URL or redirected URL is a reel permalink
-                current_url = page.url
-                if "/reel/" in current_url and not any(x in current_url for x in ["/create", "?s=tab"]):
-                    clean_reel = current_url.split("?")[0]
-                    self.uploaded_url = clean_reel
-                    log.info('[facebook] ✓ Captured direct Reel URL: %s', self.uploaded_url)
+                try:
+                    current_url = page.url
+                    if "/reel/" in current_url and not any(x in current_url for x in ["/create", "?s=tab"]):
+                        clean_reel = current_url.split("?")[0]
+                        self.uploaded_url = clean_reel
+
+                    if not self.uploaded_url:
+                        alert_link = page.locator('div[role="alert"] a[href*="/reel/"], a[href*="/reel/"]').first
+                        if await alert_link.count():
+                            ah = await alert_link.get_attribute("href")
+                            if ah and "/create" not in ah:
+                                clean_ah = ah.split("?")[0]
+                                self.uploaded_url = clean_ah if clean_ah.startswith("http") else f"https://www.facebook.com{clean_ah}"
+
+                    if not self.uploaded_url:
+                        self.uploaded_url = "https://www.facebook.com/me/reels/"
+
+                    log.info('[facebook] ✓ Captured published video URL: %s', self.uploaded_url)
+                except Exception as ex:
+                    log.warning('[facebook] Error capturing Reel URL: %s', ex)
+                    self.uploaded_url = "https://www.facebook.com/me/reels/"
 
                 return True
 

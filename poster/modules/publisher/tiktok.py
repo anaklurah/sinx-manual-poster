@@ -265,20 +265,73 @@ class TikTokPublisher(BasePublisher):
                     except Exception:
                         log.warning('[tiktok] Could not confirm success — assuming success based on flow')
 
-                # Extract direct video link if available
+                # Extract direct video link safely (never pick random feed videos)
                 try:
-                    if "/video/" in page.url:
-                        self.uploaded_url = page.url.split("?")[0]
+                    # Detect creator username
+                    user_handle = None
+                    for u_sel in ['a[href*="/@"]', 'a[href^="/@"]', '[data-e2e="profile-icon"] a']:
+                        try:
+                            el = page.locator(u_sel).first
+                            if await el.count():
+                                h = await el.get_attribute("href") or ""
+                                if "/@" in h:
+                                    cand = h.split("/@")[1].split("/")[0].split("?")[0].strip()
+                                    if cand:
+                                        user_handle = cand
+                                        log.info('[tiktok] Detected creator username: @%s', user_handle)
+                                        break
+                        except Exception:
+                            pass
+
+                    # Try to click 'Manage your posts' if modal is visible to get to creator content
+                    try:
+                        manage_btn = page.locator(':text("Manage your posts"), :text("Kelola postingan"), a[href*="content"]').first
+                        if await manage_btn.count() and await manage_btn.is_visible():
+                            await manage_btn.click()
+                            await asyncio.sleep(2)
+                    except Exception:
+                        pass
+
+                    clean_title = (title or "").strip().lower()
+                    keywords = [w for w in clean_title.split() if len(w) > 2][:4]
+                    matched_url = None
+
+                    if "/video/" in page.url and (not user_handle or f"/@{user_handle}/" in page.url):
+                        matched_url = page.url.split("?")[0]
                     else:
-                        v_link = page.locator('a[href*="/video/"]').first
-                        if await v_link.count():
-                            h = await v_link.get_attribute("href")
-                            if h and "/video/" in h:
-                                self.uploaded_url = h if h.startswith("http") else f"https://www.tiktok.com{h.split('?')[0]}"
+                        # Only look inside creator content containers or links matching creator's handle
+                        if user_handle:
+                            v_links = page.locator(f'a[href*="/@{user_handle}/video/"]')
+                        else:
+                            v_links = page.locator('table a[href*="/video/"], [data-e2e*="video"] a[href*="/video/"], main a[href*="/video/"]')
+                        
+                        v_count = await v_links.count()
+                        for i in range(v_count):
+                            link_el = v_links.nth(i)
+                            href = await link_el.get_attribute("href") or ""
+                            txt = (await link_el.text_content() or "").strip().lower()
+                            if user_handle and f"/@{user_handle}/" not in href:
+                                continue
+                            if "/video/" in href:
+                                clean_h = href.split("?")[0]
+                                full_h = clean_h if clean_h.startswith("http") else f"https://www.tiktok.com{clean_h}"
+                                if keywords and any(kw in txt for kw in keywords):
+                                    matched_url = full_h
+                                    break
+                                if not matched_url:
+                                    matched_url = full_h
+
+                    # Fallback to creator profile if video permalink is still processing
+                    if not matched_url and user_handle:
+                        matched_url = f"https://www.tiktok.com/@{user_handle}"
+                    elif not matched_url and "tiktok.com" in page.url and "upload" not in page.url:
+                        matched_url = "https://www.tiktok.com/tiktokstudio/content"
+
+                    self.uploaded_url = matched_url
                     if self.uploaded_url:
                         log.info('[tiktok] ✓ Captured published video URL: %s', self.uploaded_url)
-                except Exception:
-                    pass
+                except Exception as ex:
+                    log.warning('[tiktok] Error capturing published video URL: %s', ex)
 
                 return True
 

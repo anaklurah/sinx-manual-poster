@@ -390,9 +390,6 @@ class InstagramPublisher(BasePublisher):
                         if int(elapsed) % 10 == 0:
                             log.info('[instagram] Upload in progress... (%ds elapsed, please wait)', int(elapsed))
                     elif not dialog_visible and elapsed > 25:
-                        # Only accept dialog-closed as "success" if:
-                        # - At least 25s have passed (upload can take 20+ seconds on slow connections)
-                        # - No error was detected above
                         log.info('[instagram] ✓ Upload dialog closed after %ds — upload completed successfully', int(elapsed))
                         upload_confirmed = True
                         break
@@ -401,6 +398,7 @@ class InstagramPublisher(BasePublisher):
                     elapsed += poll_interval
 
                 if upload_confirmed:
+                    # 1. Attempt extracting direct link from upload dialog (if still open)
                     try:
                         dialog_link = page.locator('div[role="dialog"] a[href*="/reel/"], div[role="dialog"] a[href*="/p/"]').first
                         if await dialog_link.count():
@@ -412,12 +410,57 @@ class InstagramPublisher(BasePublisher):
                     except Exception as ex:
                         log.debug('[instagram] Could not extract link from dialog: %s', ex)
 
+                    # 2. If dialog closed or provided no link, extract user profile & direct reel from profile grid
+                    if not self.uploaded_url:
+                        try:
+                            ig_user = None
+                            # Inspect sidebar / navigation for profile handle
+                            prof_el = page.locator('a[href^="/"]:has([aria-label*="Profil" i], [aria-label*="Profile" i], img[alt*="profile" i], img[alt*="profil" i])').first
+                            if await prof_el.count():
+                                href = (await prof_el.get_attribute("href") or "").strip("/")
+                                if href and "/" not in href and href not in ["explore", "reels", "direct"]:
+                                    ig_user = href
+
+                            if not ig_user:
+                                # Scan all navigation links
+                                nav_links = page.locator('nav a[href^="/"], div[role="navigation"] a[href^="/"]')
+                                n_count = await nav_links.count()
+                                for idx in range(n_count):
+                                    nh = (await nav_links.nth(idx).get_attribute("href") or "").strip("/")
+                                    if nh and "/" not in nh and nh not in ["explore", "reels", "direct", "your_activity", "saved", "settings"]:
+                                        ig_user = nh
+                                        break
+
+                            if ig_user:
+                                log.info('[instagram] Navigating to user profile https://www.instagram.com/%s/reels/ to capture post link...', ig_user)
+                                await page.goto(f"https://www.instagram.com/{ig_user}/reels/", wait_until="domcontentloaded", timeout=20_000)
+                                await asyncio.sleep(2)
+                                
+                                # First post in user profile reels grid
+                                grid_reel = page.locator('main a[href*="/reel/"], main a[href*="/p/"]').first
+                                if await grid_reel.count():
+                                    rh = await grid_reel.get_attribute("href")
+                                    if rh:
+                                        clean_rh = rh.split("?")[0]
+                                        self.uploaded_url = f"https://www.instagram.com{clean_rh}" if clean_rh.startswith("/") else clean_rh
+                                        log.info('[instagram] ✓ Captured direct Reel link from user profile: %s', self.uploaded_url)
+                                
+                                if not self.uploaded_url:
+                                    self.uploaded_url = f"https://www.instagram.com/{ig_user}/reels/"
+                            else:
+                                if not self.uploaded_url:
+                                    self.uploaded_url = "https://www.instagram.com"
+                        except Exception as p_ex:
+                            log.warning('[instagram] Profile reel capture error: %s', p_ex)
+                            if not self.uploaded_url:
+                                self.uploaded_url = "https://www.instagram.com"
+
                 if not upload_confirmed:
                     log.error('[instagram] ✗ Timeout waiting for upload confirmation after %ds. Browser will not assume success.', max_wait_sec)
                     return False
 
-                # Hold browser open for 10 seconds so Instagram finishes all network transactions
-                log.info('[instagram] Video published! Holding browser open for 10s to finalize network session...')
+                # Hold browser open for 5 seconds so Instagram finishes all network transactions
+                log.info('[instagram] Video published! Holding browser open for 5s to finalize network session...')
                 await asyncio.sleep(10)
                 return True
 

@@ -258,9 +258,36 @@ def load_cookies(path: str | Path) -> list[dict]:
         except json.JSONDecodeError as exc:
             _log.error('Failed to parse %s as JSON: %s', path, exc)
             return []
-        return _parse_json_cookies(data)
+        results = _parse_json_cookies(data)
+    else:
+        results = _parse_netscape_cookies(raw_text)
 
-    return _parse_netscape_cookies(raw_text)
+    # For Google / YouTube cookies, cross-propagate domains so both accounts.google.com and youtube.com work
+    google_clones = []
+    google_auth_names = {
+        'SID', 'HSID', 'SSID', 'APISID', 'SAPISID', 'LOGIN_INFO',
+        '__Secure-1PSID', '__Secure-3PSID', '__Secure-1PAPISID', '__Secure-3PAPISID',
+        'SIDCC', '__Secure-1PSIDCC', '__Secure-3PSIDCC', '__Secure-1PSIDTS',
+        '__Secure-3PSIDTS', '__Secure-1PSIDRTS', '__Secure-3PSIDRTS', 'PREF', 'YSC'
+    }
+    existing_keys = {(c['name'], c['domain']) for c in results}
+    for c in results:
+        d = c.get('domain', '').lower().lstrip('.')
+        name = c.get('name', '')
+        if (d.endswith('youtube.com') or d.endswith('google.com')) and (name in google_auth_names or name.startswith('__Secure-')):
+            target_domains = ['.google.com', '.youtube.com']
+            for td in target_domains:
+                if (name, td) not in existing_keys:
+                    clone = dict(c)
+                    clone['domain'] = td
+                    google_clones.append(clone)
+                    existing_keys.add((name, td))
+
+    if google_clones:
+        _log.info('[cookie_loader] Auto-propagated %d Google/YouTube cross-domain authentication cookies', len(google_clones))
+        results.extend(google_clones)
+
+    return results
 
 
 def load_storage_state(path: str | Path) -> dict | None:

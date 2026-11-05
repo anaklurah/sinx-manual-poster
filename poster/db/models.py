@@ -151,6 +151,7 @@ DEFAULT_TARGETS = [
     ("twitter_nsfw", "twitter_nsfw", "Twitter NSFW", 0, 0),
     ("upscrolled", "upscrolled", "Upscrolled", 0, 0),
     ("febspot", "febspot", "Febspot", 0, 0),
+    ("tevi", "tevi", "Tevi", 1, 0),
 ]
 
 

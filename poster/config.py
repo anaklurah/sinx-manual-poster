@@ -26,6 +26,7 @@ class Config:
     UPLOADS_DIR: Path = field(default_factory=lambda: Path("./uploads"))
     PROFILES_DIR: Path = field(default_factory=lambda: Path("./assets/profiles"))
     ASSETS_DIR: Path = field(default_factory=lambda: Path("./assets"))
+    DOWNLOAD_DIR: Path = field(default_factory=lambda: Path("./data/downloads"))
 
     # Browser
     HEADLESS: bool = False
@@ -47,7 +48,7 @@ class Config:
 
     def ensure_directories(self) -> None:
         """Create necessary directories if they do not exist."""
-        for d in [self.UPLOADS_DIR, self.PROFILES_DIR, self.ASSETS_DIR, Path(self.DB_PATH).parent]:
+        for d in [self.UPLOADS_DIR, self.PROFILES_DIR, self.ASSETS_DIR, self.DOWNLOAD_DIR, Path(self.DB_PATH).parent]:
             d.mkdir(parents=True, exist_ok=True)
 
 

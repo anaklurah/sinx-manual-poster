@@ -229,20 +229,49 @@ class FebspotPublisher(BasePublisher):
                     if "/upload" not in page.url:
                         success = True
 
-                # Extract direct video URL if available
+                # Extract direct video URL
                 try:
+                    # Navigate to /my/videos/ if not already there
+                    if "/my/videos" not in page.url and "/v/" not in page.url and "/video/" not in page.url:
+                        await page.goto("https://www.febspot.com/my/videos/", wait_until="domcontentloaded", timeout=20_000)
+                        await asyncio.sleep(2)
+
                     if "/v/" in page.url or "/video/" in page.url:
                         self.uploaded_url = page.url.split("?")[0]
                     else:
-                        first_v = page.locator('a[href*="/v/"], a[href*="/video/"]').first
-                        if await first_v.count():
-                            h = await first_v.get_attribute("href")
-                            if h and ("/v/" in h or "/video/" in h):
-                                self.uploaded_url = h if h.startswith("http") else f"https://www.febspot.com{h.split('?')[0]}"
+                        clean_title = (title or "").strip().lower()
+                        keywords = [w for w in clean_title.split() if len(w) > 2][:4]
+                        v_links = page.locator('main a[href*="/video/"], .content a[href*="/video/"], a[href*="/video/"]')
+                        v_count = await v_links.count()
+                        matched_url = None
+                        for i in range(v_count):
+                            link_el = v_links.nth(i)
+                            txt = (await link_el.text_content() or "").strip().lower()
+                            t_attr = (await link_el.get_attribute("title") or "").strip().lower()
+                            href = await link_el.get_attribute("href") or ""
+                            if not href or "/edit-video/" in href:
+                                continue
+                            combined = f"{txt} {t_attr}"
+                            if keywords and any(kw in combined for kw in keywords):
+                                clean_h = href.split("?")[0]
+                                matched_url = clean_h if clean_h.startswith("http") else f"https://www.febspot.com{clean_h}"
+                                log.info('[febspot] ✓ Found video matching title keyword: %s', matched_url)
+                                break
+                        if not matched_url:
+                            main_links = page.locator('main a[href*="/video/"], #my-videos a[href*="/video/"], .table a[href*="/video/"]')
+                            if await main_links.count():
+                                href = await main_links.first.get_attribute("href") or ""
+                                if href and "/edit-video/" not in href:
+                                    clean_h = href.split("?")[0]
+                                    matched_url = clean_h if clean_h.startswith("http") else f"https://www.febspot.com{clean_h}"
+                                    log.info('[febspot] ✓ Picked first video in my-videos list: %s', matched_url)
+                        self.uploaded_url = matched_url or "https://www.febspot.com/my/videos/"
                     if self.uploaded_url:
                         log.info('[febspot] ✓ Captured published video URL: %s', self.uploaded_url)
-                except Exception:
-                    pass
+                except Exception as ex:
+                    log.warning('[febspot] Error extracting video URL: %s', ex)
+                    if not self.uploaded_url:
+                        self.uploaded_url = "https://www.febspot.com/my/videos/"
 
                 await self._jitter(2000, 4000)
                 log.info('[febspot] Upload completed successfully.')

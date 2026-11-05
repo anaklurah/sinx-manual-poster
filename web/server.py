@@ -749,6 +749,24 @@ async def stream_live_logs(request: Request):
 
 
 # ---------------------------------------------------------------------------
+# Debug Screenshots
+# ---------------------------------------------------------------------------
+
+@app.get("/api/debug/screenshot/{target_key}")
+async def get_debug_screenshot(target_key: str, tag: Optional[str] = None):
+    """Retrieve the latest debug screenshot captured for a specific platform publisher."""
+    cfg = get_config()
+    filename = f"{target_key}_{tag}.png" if tag else f"{target_key}_last_state.png"
+    shot_path = Path(cfg.DOWNLOAD_DIR) / filename
+    if not shot_path.exists():
+        fallback = Path(cfg.DOWNLOAD_DIR) / f"{target_key}_last_state.png"
+        if fallback.exists():
+            return FileResponse(fallback, media_type="image/png")
+        raise HTTPException(status_code=404, detail=f"Screenshot tidak ditemukan untuk platform '{target_key}'")
+    return FileResponse(shot_path, media_type="image/png")
+
+
+# ---------------------------------------------------------------------------
 # Static Files & Dashboard SPA
 # ---------------------------------------------------------------------------
 

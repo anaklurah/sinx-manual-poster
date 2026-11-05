@@ -10,10 +10,18 @@ cd /d "%~dp0"
 :: 1. Cari path Python yang valid
 set "PY_CMD="
 
-:: Cek python di PATH
-python --version >nul 2>&1
+:: Cek python di PATH (verifikasi Python asli)
+python -c "import sys" >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     set "PY_CMD=python"
+)
+
+:: Cek Python Launcher bawaan Windows (py)
+if not defined PY_CMD (
+    py -c "import sys" >nul 2>&1
+    if !ERRORLEVEL! EQU 0 (
+        set "PY_CMD=py"
+    )
 )
 
 :: Jika tidak ketemu atau mengarah ke Windows Store stub, cek lokasi instalasi standar Python
@@ -46,7 +54,7 @@ if not defined PY_CMD (
 if %ERRORLEVEL% NEQ 0 (
     echo.
     echo [*] Paket library belum terpasang di Python Anda.
-    echo [*] Sedang menginstall dependensi otomatis (harap tunggu beberapa menit)...
+    echo [*] Sedang menginstall dependensi otomatis [harap tunggu beberapa menit]...
     echo.
     "%PY_CMD%" -m pip install -r requirements.txt
     if %ERRORLEVEL% NEQ 0 (

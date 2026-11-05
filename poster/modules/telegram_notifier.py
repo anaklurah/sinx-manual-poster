@@ -47,7 +47,21 @@ def send_telegram_message_sync(
             logger.info("[Telegram] Message sent successfully to chat %s", chat_id)
             return True
         else:
-            logger.error("[Telegram] API error (%d): %s", resp.status_code, data.get("description", resp.text))
+            err_desc = data.get("description", resp.text)
+            logger.error("[Telegram] API error (%d): %s", resp.status_code, err_desc)
+            # If HTML parsing failed, retry once sending plain text stripped of HTML tags
+            if parse_mode and ("parse" in err_desc.lower() or "entity" in err_desc.lower()):
+                import re
+                clean_text = re.sub(r'<[^>]+>', '', text)
+                retry_payload = {
+                    "chat_id": chat_id,
+                    "text": clean_text,
+                    "disable_web_page_preview": disable_web_page_preview,
+                }
+                retry_resp = requests.post(url, json=retry_payload, timeout=timeout)
+                if retry_resp.status_code == 200 and retry_resp.json().get("ok"):
+                    logger.info("[Telegram] Sent successfully via plain-text fallback")
+                    return True
             return False
     except Exception as exc:
         logger.exception("[Telegram] Failed to send message: %s", exc)
@@ -136,12 +150,14 @@ async def notify_post_results(
 
     if success_links:
         lines.append("✅ <b>Berhasil Dipublikasikan:</b>")
-        for plat, link in success_links.items():
+        for plat, raw_link in success_links.items():
             p_display = plat.replace("_", " ").title()
+            link = (raw_link or "").strip()
             if link and link.startswith("http"):
-                lines.append(f"  • {p_display}: <a href=\"{link}\">Buka Postingan</a>")
+                escaped_link = html.escape(link)
+                lines.append(f"  • <b>{p_display}</b>:\n    🔗 <a href=\"{escaped_link}\">{escaped_link}</a>")
             else:
-                lines.append(f"  • {p_display}: Berhasil terupload")
+                lines.append(f"  • <b>{p_display}</b>: Berhasil terupload")
 
     if failed_platforms:
         lines.append("")

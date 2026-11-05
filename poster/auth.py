@@ -22,6 +22,20 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, hashed: str) -> bool:
+    if not password or not hashed:
+        return False
+    # Direct match (in case user enters the hash string itself or plaintext match)
+    if secrets.compare_digest(password, hashed):
+        return True
+    # Bcrypt support
+    if hashed.startswith(("$2a$", "$2b$", "$2y$")):
+        try:
+            import bcrypt
+            if bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8")):
+                return True
+        except Exception as e:
+            _log.warning(f"Bcrypt verification error: {e}")
+    # Standard SHA-256 fallback
     computed = hashlib.sha256(password.encode("utf-8")).hexdigest()
     return secrets.compare_digest(computed, hashed)
 
@@ -150,7 +164,11 @@ def revoke_token(db_path: str | Path, token: str) -> None:
         conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
 
 
-def ensure_default_admin(db_path: str | Path, default_password: str = "admin123") -> None:
+def ensure_default_admin(
+    db_path: str | Path,
+    default_username: str = "adminkd",
+    default_password_hash: str = "$2a$10$XDWXg3CgGcwSyIiHP6AS7uJJZhuhIy3LtyV1XnEjiwAwfS68r8wwK",
+) -> None:
     conn = get_conn(db_path)
     try:
         count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
@@ -159,14 +177,12 @@ def ensure_default_admin(db_path: str | Path, default_password: str = "admin123"
 
     if count == 0:
         try:
-            create_user(
-                db_path=db_path,
-                username="admin",
-                password=default_password,
-                account_id=1,
-                is_admin=True,
-            )
-            _log.info("Default admin user created: username='admin'")
+            with db_session(db_path) as conn:
+                conn.execute(
+                    "INSERT INTO users (account_id, username, password_hash, is_admin) VALUES (?, ?, ?, 1)",
+                    (1, default_username, default_password_hash),
+                )
+            _log.info(f"Default admin user created: username='{default_username}'")
         except Exception as e:
             _log.error(f"Failed to create default admin: {e}")
 

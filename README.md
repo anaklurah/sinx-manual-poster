@@ -128,8 +128,8 @@ Script akan otomatis:
 ## 🔑 Akun Login Bawaan (Default)
 
 Saat pertama kali dibuka, masuk dengan akun Administrator bawaan:
-- **Username**: `admin`
-- **Password**: `admin123`
+- **Username**: `adminkd`
+- **Password**: `admin123` (atau hash BCrypt `$2a$10$XDWXg3CgGcwSyIiHP6AS7uJJZhuhIy3LtyV1XnEjiwAwfS68r8wwK`)
 
 *(Setelah masuk, Anda dapat membuat akun untuk karyawan lain di tab **Kelola Karyawan**).*
 

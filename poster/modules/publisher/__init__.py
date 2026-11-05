@@ -23,6 +23,7 @@ _PLATFORM_MAP = [
     ("tiktok", "poster.modules.publisher.tiktok", "TikTokPublisher"),
     ("upscrolled", "poster.modules.publisher.upscrolled", "UpscrolledPublisher"),
     ("febspot", "poster.modules.publisher.febspot", "FebspotPublisher"),
+    ("tevi", "poster.modules.publisher.tevi", "TeviPublisher"),
 ]
 
 

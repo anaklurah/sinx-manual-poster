@@ -93,10 +93,46 @@ class YouTubePublisher(BasePublisher):
                 await self._save_debug_screenshot(page, 'nav')
 
                 if 'accounts.google.com' in curr_url:
+                    log.info('[youtube] Terdeteksi halaman accounts.google.com, menunggu handshake / passive redirect ke studio.youtube.com...')
+                    try:
+                        await page.wait_for_url(lambda u: 'studio.youtube.com' in u, timeout=12_000)
+                        curr_url = page.url
+                        log.info('[youtube] ✓ Passive redirect berhasil, URL saat ini: %s', curr_url)
+                    except Exception:
+                        pass
+
+                # Handle account picker / channel switcher if shown
+                if 'accounts.google.com' in curr_url or 'channel' in curr_url:
+                    try:
+                        acct_btn = page.locator('div[data-identifier], div[role="link"]:has-text("@"), [data-email]').first
+                        if await acct_btn.count() and await acct_btn.is_visible():
+                            log.info('[youtube] Klik pilihan akun Google yang tersedia...')
+                            await acct_btn.click()
+                            await page.wait_for_url(lambda u: 'studio.youtube.com' in u, timeout=12_000)
+                            curr_url = page.url
+                    except Exception:
+                        pass
+
+                # If still on Google Login and running with visible browser, allow manual verification window
+                if 'accounts.google.com' in curr_url:
+                    is_headless = getattr(self._cfg, 'HEADLESS', False)
+                    if not is_headless:
+                        log.warning(
+                            '[youtube] ⚠️ Google meminta login/verifikasi. Jendela browser sedang terbuka! '
+                            'Silakan klik/selesaikan login akun Anda di browser (menunggu hingga 40 detik)...'
+                        )
+                        for _ in range(20):
+                            await asyncio.sleep(2)
+                            curr_url = page.url
+                            if 'studio.youtube.com' in curr_url and 'accounts.google.com' not in curr_url:
+                                log.info('[youtube] ✓ Login berhasil diselesaikan di browser! Melanjutkan upload...')
+                                break
+
+                if 'accounts.google.com' in curr_url:
                     log.error(
                         '[youtube] GAGAL: Terdeteksi redirect ke Google Login (%s). '
                         'Session YouTube belum aktif atau cookies expired! '
-                        'Silakan upload file profil "youtube.zip" atau cookies terbaru melalui Dashboard Web.',
+                        'Silakan login di browser yang terbuka atau upload file profil "youtube.zip".',
                         curr_url
                     )
                     await self._save_debug_screenshot(page, 'google_login')
@@ -417,6 +453,9 @@ class YouTubePublisher(BasePublisher):
                                 log.info('[youtube] ✓ Captured canonical direct Shorts URL: %s', self.uploaded_url)
                 except Exception as ex:
                     log.debug('[youtube] Could not extract video URL from dialog: %s', ex)
+
+                if not self.uploaded_url:
+                    self.uploaded_url = "https://studio.youtube.com"
 
                 # Hold context open 5 seconds to ensure backend persistence
                 await self._jitter(4000, 6000)

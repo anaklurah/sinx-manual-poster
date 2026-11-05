@@ -21,7 +21,8 @@ const PLATFORM_META = {
     'twitter': { icon: 'twitter', color: '#38bdf8', label: 'Twitter / X' },
     'twitter_nsfw': { icon: 'flame', color: '#f43f5e', label: 'Twitter 18+' },
     'upscrolled': { icon: 'arrow-up-circle', color: '#10b981', label: 'Upscrolled' },
-    'febspot': { icon: 'play-circle', color: '#f59e0b', label: 'Febspot' }
+    'febspot': { icon: 'play-circle', color: '#f59e0b', label: 'Febspot' },
+    'tevi': { icon: 'tv', color: '#8b5cf6', label: 'Tevi' }
 };
 
 // ---------------------------------------------------------------------------

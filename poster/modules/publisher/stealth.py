@@ -61,14 +61,20 @@ def get_launch_options(headless: bool = False) -> dict:
         A dict suitable for unpacking into ``playwright.chromium.launch(**opts)``
         or ``playwright.chromium.launch_persistent_context(..., **opts)``.
     """
-    return {
+    import shutil
+    import sys
+
+    opts = {
         'headless': headless,
         'args': STEALTH_ARGS,
-        # Slow-motion makes human-like timing easier in some scenarios
         'slow_mo': 0,
-        # Chrome channel matches the DEFAULT_USER_AGENT Chrome version
-        'channel': 'chrome',
     }
+    if sys.platform == 'win32':
+        opts['channel'] = 'chrome'
+    elif shutil.which('google-chrome') or shutil.which('google-chrome-stable'):
+        opts['channel'] = 'chrome'
+
+    return opts
 
 
 def get_context_options(
