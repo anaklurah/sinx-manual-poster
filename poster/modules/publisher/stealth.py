@@ -1,4 +1,4 @@
-﻿"""
+"""
 Playwright stealth utilities — applies anti-detection patches to browser contexts.
 """
 from playwright.async_api import BrowserContext
@@ -13,40 +13,34 @@ STEALTH_ARGS = [
 ]
 
 DEFAULT_VIEWPORT = {'width': 1280, 'height': 720}
-DEFAULT_USER_AGENT = (
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-    'AppleWebKit/537.36 (KHTML, like Gecko) '
-    'Chrome/133.0.0.0 Safari/537.36'
-)
 
 
 async def apply_stealth(context: BrowserContext) -> None:
     """Apply stealth patches to a browser context.
 
-    Runs playwright-stealth's async helper and overlays additional
-    navigator property overrides so automation signals are hidden from
-    JavaScript fingerprinting scripts.
+    Runs playwright-stealth's async helper and masks automation indicators
+    so automation signals are hidden from JavaScript fingerprinting scripts.
     """
-    stealth = Stealth()
-    await stealth.apply_stealth_async(context)
+    try:
+        stealth = Stealth()
+        await stealth.apply_stealth_async(context)
+    except Exception:
+        pass
 
-    # Additional navigator.webdriver override — belt-and-suspenders on top
-    # of playwright-stealth in case a platform checks multiple signals.
+    # Ensure navigator.webdriver is undefined and chrome runtime exists
     await context.add_init_script("""
         Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
-        Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
-        // Mask chrome.runtime absence
         if (!window.chrome) {
             window.chrome = {runtime: {}};
         }
-        // Override permissions API to avoid headless detection
-        const originalQuery = window.navigator.permissions.query;
-        window.navigator.permissions.query = (parameters) => (
-            parameters.name === 'notifications'
-                ? Promise.resolve({state: Notification.permission})
-                : originalQuery(parameters)
-        );
+        const originalQuery = window.navigator.permissions ? window.navigator.permissions.query : null;
+        if (originalQuery) {
+            window.navigator.permissions.query = (parameters) => (
+                parameters.name === 'notifications'
+                    ? Promise.resolve({state: Notification.permission})
+                    : originalQuery(parameters)
+            );
+        }
     """)
 
 
@@ -67,6 +61,7 @@ def get_launch_options(headless: bool = False) -> dict:
     opts = {
         'headless': headless,
         'args': STEALTH_ARGS,
+        'ignore_default_args': ['--enable-automation'],
         'slow_mo': 0,
     }
     if sys.platform == 'win32':
@@ -80,6 +75,7 @@ def get_launch_options(headless: bool = False) -> dict:
 def get_context_options(
     locale: str = 'id-ID',
     timezone: str = 'Asia/Jakarta',
+    user_agent: str | None = None,
 ) -> dict:
     """Return browser-context keyword arguments.
 
@@ -89,13 +85,12 @@ def get_context_options(
     Args:
         locale: Browser locale string, e.g. ``'id-ID'``.
         timezone: IANA timezone identifier, e.g. ``'Asia/Jakarta'``.
+        user_agent: Custom User-Agent. If None, uses Chrome's native matching UA.
 
     Returns:
-        Dict of context options including user_agent, viewport, locale,
-        timezone_id, and Accept-Language headers.
+        Dict of context options.
     """
-    return {
-        'user_agent': DEFAULT_USER_AGENT,
+    opts = {
         'viewport': DEFAULT_VIEWPORT,
         'locale': locale,
         'timezone_id': timezone,
@@ -109,3 +104,6 @@ def get_context_options(
             'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
         },
     }
+    if user_agent:
+        opts['user_agent'] = user_agent
+    return opts

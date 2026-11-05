@@ -124,10 +124,10 @@ async def publish_manual_post(
                 success_links[t_key] = pub_url
                 logger.info("✅ [Uploader] Post #%d successfully published to %s! URL: %s", post_id, t_key, pub_url or "(Pending link)")
             else:
-                err = "Publisher returned failure status (check live logs for details)"
-                update_platform_post_status(post_id, t_key, "failed", error_msg=err, db_path=db)
+                err = getattr(publisher, "last_error", None) or "Publisher returned failure status (check live logs for details)"
+                update_platform_post_status(post_id, t_key, "failed", error_msg=err[:500], db_path=db)
                 failed_platforms.append(t_key)
-                logger.error("❌ [Uploader] Post #%d failed on %s", post_id, t_key)
+                logger.error("❌ [Uploader] Post #%d failed on %s: %s", post_id, t_key, err)
 
         except Exception as exc:
             err = f"{type(exc).__name__}: {str(exc)}"

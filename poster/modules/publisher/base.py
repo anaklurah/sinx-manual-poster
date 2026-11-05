@@ -107,6 +107,7 @@ class BasePublisher(ABC):
         self._log = get_logger(f'poster.publisher.{self.target_key}')
         self.account_id = account_id
         self.uploaded_url: str | None = None
+        self.last_error: str | None = None
 
     def _get_profiles_dir(self) -> Path:
         base_dir = Path(self._cfg.PROFILES_DIR)
@@ -178,11 +179,13 @@ class BasePublisher(ABC):
                 self._log.warning('[%s] Upload returned False.', t_name)
             return bool(result)
         except asyncio.TimeoutError:
+            self.last_error = f'Upload timed out after {_UPLOAD_TIMEOUT_S}s'
             self._log.error(
                 '[%s] Upload timed out after %ds.', t_name, _UPLOAD_TIMEOUT_S
             )
             return False
         except Exception as exc:  # noqa: BLE001
+            self.last_error = f'{type(exc).__name__}: {str(exc)}'
             self._log.exception('[%s] Upload raised an unexpected error: %s', t_name, exc)
 
             return False

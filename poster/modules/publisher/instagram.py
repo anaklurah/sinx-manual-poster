@@ -69,7 +69,9 @@ class InstagramPublisher(BasePublisher):
 
                 # Check authentication
                 if '/accounts/login' in page.url:
-                    log.error('[instagram] Not authenticated — redirected to login')
+                    self.last_error = 'Not authenticated on Instagram — redirected to login'
+                    log.error('[instagram] ' + self.last_error)
+                    await self._save_debug_screenshot(page, 'not_logged_in')
                     return False
 
                 # Dismiss initial modal popups ("Turn on notifications", "Save login info", etc.)
@@ -89,7 +91,13 @@ class InstagramPublisher(BasePublisher):
                     'svg[aria-label="New post"], '
                     '[aria-label="New post"], '
                     'svg[aria-label="Postingan baru"], '
-                    '[aria-label="Postingan baru"]'
+                    '[aria-label="Postingan baru"], '
+                    'svg[aria-label="Create"], '
+                    'svg[aria-label="Buat"], '
+                    'a:has-text("Create"), '
+                    'a:has-text("Buat"), '
+                    'div[role="button"]:has-text("Create"), '
+                    'div[role="button"]:has-text("Buat")'
                 )
                 await page.wait_for_selector(create_btn_sel, timeout=20_000)
                 create_icon = page.locator(create_btn_sel).first
@@ -305,7 +313,9 @@ class InstagramPublisher(BasePublisher):
                             break
 
                 if not share_appeared:
-                    log.error('[instagram] Share button never appeared after 135s')
+                    self.last_error = 'Share button never appeared on Instagram after 135s'
+                    log.error('[instagram] ' + self.last_error)
+                    await self._save_debug_screenshot(page, 'no_share_btn')
                     return False
 
                 share_btn = page.locator(share_btn_sel).first

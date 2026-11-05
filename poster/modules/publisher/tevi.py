@@ -157,12 +157,24 @@ class TeviPublisher(BasePublisher):
 
                 # Check for Cloudflare interstitial
                 title_text = await page.title()
-                if "Just a moment" in title_text or "Cloudflare" in title_text:
-                    log.info('[tevi] Cloudflare check detected, waiting for clearance...')
-                    for _ in range(15):
+                if any(cf_term in title_text.lower() for cf_term in ["just a moment", "cloudflare", "tunggu sebentar", "moment"]):
+                    log.info('[tevi] Cloudflare check detected (%r), waiting for clearance...', title_text)
+                    for sec in range(25):
                         await asyncio.sleep(1)
-                        if "Just a moment" not in await page.title():
-                            log.info('[tevi] ✓ Cloudflare cleared successfully')
+                        # Check and click turnstile checkbox if visible in challenge frames
+                        for f in page.frames:
+                            if 'challenges.cloudflare.com' in f.url:
+                                try:
+                                    box = f.locator('input[type="checkbox"], #challenge-stage, .ctp-checkbox-label, div[role="checkbox"]').first
+                                    if await box.count() and await box.is_visible():
+                                        log.info('[tevi] Found Turnstile checkbox, clicking...')
+                                        await box.click()
+                                        break
+                                except Exception:
+                                    pass
+                        curr_t = await page.title()
+                        if not any(cf_term in curr_t.lower() for cf_term in ["just a moment", "cloudflare", "tunggu sebentar"]):
+                            log.info('[tevi] ✓ Cloudflare cleared successfully (title: %r)', curr_t)
                             break
 
                 await self._save_debug_screenshot(page, 'home')
@@ -216,10 +228,8 @@ class TeviPublisher(BasePublisher):
                                 log.info('[tevi] ✓ Berhasil login! Terdeteksi creator: @%s', creator_handle)
                                 break
                     else:
-                        log.error(
-                            '[tevi] ✗ Akun Tevi belum login! Silakan login terlebih dahulu melalui profil persistent '
-                            'atau upload profile zip "tevi.zip".'
-                        )
+                        self.last_error = 'Akun Tevi belum login! Silakan login di browser yang terbuka atau upload tevi.zip'
+                        log.error('[tevi] ✗ ' + self.last_error)
                         await self._save_debug_screenshot(page, 'not_logged_in')
                         return False
 
@@ -314,7 +324,8 @@ class TeviPublisher(BasePublisher):
 
                 if not video_attached:
                     await self._save_debug_screenshot(page, 'no_file_input')
-                    log.error('[tevi] ✗ Could not locate video file input selector. Pastikan akun sudah login di Tevi!')
+                    self.last_error = 'Could not locate video file input selector. Pastikan akun sudah login di Tevi!'
+                    log.error('[tevi] ✗ ' + self.last_error)
                     return False
 
                 log.info('[tevi] ✓ Video attachment confirmed')

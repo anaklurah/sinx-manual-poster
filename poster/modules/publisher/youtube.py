@@ -129,6 +129,7 @@ class YouTubePublisher(BasePublisher):
                                 break
 
                 if 'accounts.google.com' in curr_url:
+                    self.last_error = f"Redirect ke Google Login ({curr_url}). Cookies Google expired atau minta verifikasi!"
                     log.error(
                         '[youtube] GAGAL: Terdeteksi redirect ke Google Login (%s). '
                         'Session YouTube belum aktif atau cookies expired! '

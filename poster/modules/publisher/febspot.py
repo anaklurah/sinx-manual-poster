@@ -123,24 +123,40 @@ class FebspotPublisher(BasePublisher):
                     return False
 
                 # ── Step 2: Navigate to Upload page if not already there ───────
-                if '/upload' not in page.url:
-                    log.info('[febspot] Looking for Upload navigation link')
+                if 'upload' not in page.url:
+                    log.info('[febspot] Looking for Upload / Add video navigation link')
+                    upload_href = None
                     try:
-                        upload_btn = page.locator('a[href*="upload"], button:has-text("Upload"), a:has-text("Upload")').first
-                        await upload_btn.wait_for(state='visible', timeout=12_000)
-                        await upload_btn.click()
-                        await self._jitter(1500, 3000)
-                        log.info('[febspot] Navigated to upload page via nav button')
+                        candidate = page.locator('a[href*="upload-channel"], a[href*="upload"], a:has-text("Add video"), :text("Add video")').first
+                        if await candidate.count():
+                            h = await candidate.get_attribute('href')
+                            if h:
+                                upload_href = h if h.startswith('http') else f"https://www.febspot.com{h}"
                     except Exception:
-                        page_title = await page.title()
-                        if "504" in page_title or "502" in page_title:
-                            log.error('[febspot] Server Febspot upstream gateway timeout (504): %s', page_title)
-                            return False
-                        log.warning('[febspot] Tombol Upload tidak ditemukan di halaman utama. Melanjutkan...')
+                        pass
+
+                    if upload_href:
+                        log.info('[febspot] Direct navigating to upload channel URL: %s', upload_href)
+                        await page.goto(upload_href, wait_until='domcontentloaded', timeout=30_000)
+                        await self._jitter(1500, 3000)
+                    else:
+                        try:
+                            upload_btn = page.locator('a[href*="upload-channel"], a[href*="upload"], button:has-text("Upload"), a:has-text("Upload"), a:has-text("Add video")').first
+                            await upload_btn.wait_for(state='visible', timeout=12_000)
+                            await upload_btn.click()
+                            await self._jitter(1500, 3000)
+                            log.info('[febspot] Navigated to upload page via nav button')
+                        except Exception:
+                            page_title = await page.title()
+                            if "504" in page_title or "502" in page_title:
+                                self.last_error = f"Server Febspot gateway timeout (504): {page_title}"
+                                log.error('[febspot] Server Febspot upstream gateway timeout (504): %s', page_title)
+                                return False
+                            log.warning('[febspot] Tombol Upload tidak ditemukan di halaman utama. Melanjutkan...')
 
                 # ── Step 3: Set video file ─────────────────────────────────────
                 log.info('[febspot] Setting video file: %s', video_path)
-                file_input = page.locator('input[type="file"]').first
+                file_input = page.locator('input#add-video__file, input[type="file"]').first
                 await file_input.wait_for(state='attached', timeout=20_000)
                 await file_input.set_input_files(video_path)
                 log.info('[febspot] File set, waiting for form fields...')
@@ -160,7 +176,7 @@ class FebspotPublisher(BasePublisher):
                 await self._jitter(400, 800)
 
                 tags_str = ', '.join(t.lstrip('#') for t in tags) if tags else 'viral, video, shorts, trending'
-                tags_el = page.locator('input[name="tags"], input[id="tags"], input[placeholder*="travel" i]').first
+                tags_el = page.locator('input#videoKeywords, input[name="tags"], input[id="tags"], input[placeholder*="travel" i]').first
                 if await tags_el.count() > 0 and await tags_el.is_visible():
                     log.info('[febspot] Filling keywords/tags: %r', tags_str)
                     await tags_el.fill(tags_str)
